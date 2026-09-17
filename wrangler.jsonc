@@ -3,5 +3,12 @@
   "name": "checker",
   "main": "./worker.js",
   "compatibility_date": "2026-09-17",
-  "workers_dev": true
+  "workers_dev": true,
+
+  "kv_namespaces": [
+    {
+      "binding": "IP_DATABASE",
+      "id": "055450c735e14dd8a6948af7130e3e11"
+    }
+  ]
 }
