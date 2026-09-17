@@ -353,23 +353,72 @@
             await sleep(700);
 
             // ==================================
-            // MULTIPLE ACCOUNT
+            // 🚫 DIFFERENT TELEGRAM + SAME IP
             // ==================================
 
-            if (data.multiple === true) {
+            if (data.banned === true) {
 
                 accountStatus.textContent =
-                    "Multiple detected";
+                    "IP detected";
 
                 accountStatus.classList.add(
                     "failed"
                 );
 
                 errorMessage.textContent =
-                    "Multiple account detected. Verification failed.";
+                    "🚫 IP detected. You are banned.";
 
                 errorMessage.style.display =
                     "block";
+
+                return;
+            }
+
+
+            // ==================================
+            // ✅ SAME TELEGRAM ALREADY VERIFIED
+            // ==================================
+
+            if (data.already_verified === true) {
+
+                accountStatus.textContent =
+                    "Already verified";
+
+                accountStatus.classList.add(
+                    "success"
+                );
+
+                errorMessage.textContent =
+                    "✅ You are already verified.";
+
+                errorMessage.style.display =
+                    "block";
+
+                await sleep(1500);
+
+                // ==================================
+                // OPEN BOT
+                // ==================================
+
+                const botLink =
+                    BOT_URL +
+                    "?start=already_verified";
+
+                if (
+                    window.Telegram &&
+                    window.Telegram.WebApp
+                ) {
+
+                    tg.openTelegramLink(
+                        botLink
+                    );
+
+                } else {
+
+                    window.location.href =
+                        botLink;
+
+                }
 
                 return;
             }
