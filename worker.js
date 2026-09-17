@@ -30,22 +30,78 @@ export default {
         request.headers.get("X-Forwarded-For") ||
         "unknown";
 
-      // Check existing IP
-      const existingIP =
-        await env.IP_DATABASE.get(ip);
+      const userId =
+        url.searchParams.get("user_id");
 
       // ========================================
-      // MULTIPLE DETECTED
+      // TELEGRAM USER ID REQUIRED
       // ========================================
 
-      if (existingIP) {
+      if (!userId) {
 
         return new Response(
           JSON.stringify({
+            success: false,
+            error: "Telegram user ID missing"
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+
+      // ========================================
+      // CHECK THIS TELEGRAM USER
+      // ========================================
+
+      const userRecord =
+        await env.IP_DATABASE.get(
+          "user:" + userId
+        );
+
+      // ========================================
+      // SAME TELEGRAM USER ALREADY VERIFIED
+      // ========================================
+
+      if (userRecord) {
+
+        const savedUser =
+          JSON.parse(userRecord);
+
+        // Same Telegram + same IP
+        if (savedUser.ip === ip) {
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              status: "already_verified",
+              ip: ip,
+              multiple: false,
+              already_verified: true
+            }),
+            {
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+
+        }
+
+        // Same Telegram but different IP
+        // Treat as already verified
+        return new Response(
+          JSON.stringify({
             success: true,
-            status: "multiple",
+            status: "already_verified",
             ip: ip,
-            multiple: true
+            multiple: false,
+            already_verified: true
           }),
           {
             headers: {
@@ -57,12 +113,64 @@ export default {
       }
 
       // ========================================
-      // NEW IP
+      // CHECK WHETHER IP BELONGS TO ANOTHER USER
+      // ========================================
+
+      const ipRecord =
+        await env.IP_DATABASE.get(
+          "ip:" + ip
+        );
+
+      if (ipRecord) {
+
+        const savedIP =
+          JSON.parse(ipRecord);
+
+        // ======================================
+        // DIFFERENT TELEGRAM + SAME IP
+        // ======================================
+
+        if (
+          String(savedIP.user_id) !==
+          String(userId)
+        ) {
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              status: "banned",
+              ip: ip,
+              multiple: true,
+              banned: true
+            }),
+            {
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json"
+              }
+            }
+          );
+
+        }
+      }
+
+      // ========================================
+      // NEW USER + NEW IP
       // ========================================
 
       await env.IP_DATABASE.put(
-        ip,
+        "user:" + userId,
         JSON.stringify({
+          user_id: userId,
+          ip: ip,
+          first_seen: new Date().toISOString()
+        })
+      );
+
+      await env.IP_DATABASE.put(
+        "ip:" + ip,
+        JSON.stringify({
+          user_id: userId,
           first_seen: new Date().toISOString()
         })
       );
@@ -77,6 +185,7 @@ export default {
       await env.IP_DATABASE.put(
         "verify:" + token,
         JSON.stringify({
+          user_id: userId,
           ip: ip,
           created_at: Date.now()
         }),
@@ -91,6 +200,7 @@ export default {
           status: "new",
           ip: ip,
           multiple: false,
+          already_verified: false,
           token: token
         }),
         {
