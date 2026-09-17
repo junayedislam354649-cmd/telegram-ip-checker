@@ -4,7 +4,23 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // IP CHECK API
+    // CORS
+    // ==========================================
+
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "*"
+    };
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        headers: corsHeaders
+      });
+    }
+
+    // ==========================================
+    // IP CHECK
     // ==========================================
 
     if (url.pathname === "/api/check") {
@@ -14,16 +30,12 @@ export default {
         request.headers.get("X-Forwarded-For") ||
         "unknown";
 
+      // Check existing IP
+      const existingIP =
+        await env.IP_DATABASE.get(ip);
 
       // ========================================
-      // CHECK IF IP ALREADY EXISTS
-      // ========================================
-
-      const existingIP = await env.IP_DATABASE.get(ip);
-
-
-      // ========================================
-      // SAME IP DETECTED
+      // MULTIPLE DETECTED
       // ========================================
 
       if (existingIP) {
@@ -37,17 +49,15 @@ export default {
           }),
           {
             headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+              ...corsHeaders,
+              "Content-Type": "application/json"
             }
           }
         );
-
       }
 
-
       // ========================================
-      // NEW IP → SAVE IT
+      // NEW IP
       // ========================================
 
       await env.IP_DATABASE.put(
@@ -57,26 +67,111 @@ export default {
         })
       );
 
+      // ========================================
+      // CREATE VERIFICATION TOKEN
+      // ========================================
+
+      const token =
+        crypto.randomUUID();
+
+      await env.IP_DATABASE.put(
+        "verify:" + token,
+        JSON.stringify({
+          ip: ip,
+          created_at: Date.now()
+        }),
+        {
+          expirationTtl: 600
+        }
+      );
 
       return new Response(
         JSON.stringify({
           success: true,
           status: "new",
           ip: ip,
-          multiple: false
+          multiple: false,
+          token: token
         }),
         {
           headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
+            ...corsHeaders,
+            "Content-Type": "application/json"
           }
         }
       );
     }
 
+    // ==========================================
+    // VERIFY TOKEN
+    // ==========================================
+
+    if (url.pathname === "/api/verify") {
+
+      const token =
+        url.searchParams.get("token");
+
+      if (!token) {
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Missing token"
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+
+      const data =
+        await env.IP_DATABASE.get(
+          "verify:" + token
+        );
+
+      if (!data) {
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            verified: false,
+            error: "Invalid or expired token"
+          }),
+          {
+            status: 403,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+
+      // One-time token
+      await env.IP_DATABASE.delete(
+        "verify:" + token
+      );
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          verified: true
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
 
     // ==========================================
-    // API HOME PAGE
+    // API HOME
     // ==========================================
 
     return new Response(
@@ -85,7 +180,6 @@ export default {
       <html>
 
       <head>
-
         <title>IP Checker API</title>
 
         <style>
@@ -118,10 +212,6 @@ export default {
             font-weight: bold;
           }
 
-          a:hover {
-            text-decoration: underline;
-          }
-
         </style>
 
       </head>
@@ -152,10 +242,10 @@ export default {
 
       </html>
       `,
-
       {
         headers: {
-          "Content-Type": "text/html; charset=UTF-8"
+          "Content-Type":
+            "text/html; charset=UTF-8"
         }
       }
     );
