@@ -248,20 +248,26 @@
 
 <script>
 
-    const tg = window.Telegram.WebApp;
+    const tg =
+        window.Telegram.WebApp;
 
     tg.ready();
     tg.expand();
 
-
     const API_URL =
         "https://checker.junayedislam354649.workers.dev/api/check";
 
+    const VERIFY_API =
+        "https://checker.junayedislam354649.workers.dev/api/verify";
+
+    const BOT_URL =
+        "https://t.me/Starfreearn_bot";
 
     function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise(
+            resolve => setTimeout(resolve, ms)
+        );
     }
-
 
     async function startVerification() {
 
@@ -277,37 +283,30 @@
         const errorMessage =
             document.getElementById("errorMessage");
 
-
         try {
-
-            // =====================================
-            // SYSTEM
-            // =====================================
 
             await sleep(800);
 
             systemStatus.textContent =
                 "System loaded";
 
-            systemStatus.classList.remove("loading");
-            systemStatus.classList.add("success");
+            systemStatus.classList.remove(
+                "loading"
+            );
 
-
-            // =====================================
-            // API REQUEST
-            // =====================================
+            systemStatus.classList.add(
+                "success"
+            );
 
             ipStatus.textContent =
                 "Checking...";
 
-            ipStatus.classList.add("loading");
-
+            ipStatus.classList.add(
+                "loading"
+            );
 
             const response =
-                await fetch(API_URL, {
-                    method: "GET"
-                });
-
+                await fetch(API_URL);
 
             if (!response.ok) {
 
@@ -317,10 +316,8 @@
 
             }
 
-
             const data =
                 await response.json();
-
 
             if (!data.success) {
 
@@ -330,38 +327,33 @@
 
             }
 
-
-            // =====================================
-            // IP CHECKED
-            // =====================================
-
             await sleep(500);
 
             ipStatus.textContent =
                 "IP checked";
 
-            ipStatus.classList.remove("loading");
-            ipStatus.classList.add("success");
+            ipStatus.classList.remove(
+                "loading"
+            );
 
-
-            // =====================================
-            // MULTIPLE ACCOUNT CHECK
-            // =====================================
+            ipStatus.classList.add(
+                "success"
+            );
 
             await sleep(700);
 
-
-            // -------------------------------------
-            // MULTIPLE DETECTED
-            // -------------------------------------
+            // ==================================
+            // MULTIPLE ACCOUNT
+            // ==================================
 
             if (data.multiple === true) {
 
                 accountStatus.textContent =
                     "Multiple detected";
 
-                accountStatus.classList.add("failed");
-
+                accountStatus.classList.add(
+                    "failed"
+                );
 
                 errorMessage.textContent =
                     "Multiple account detected. Verification failed.";
@@ -369,26 +361,42 @@
                 errorMessage.style.display =
                     "block";
 
-
                 return;
-
             }
 
-
-            // -------------------------------------
-            // NO MULTIPLE ACCOUNT
-            // -------------------------------------
+            // ==================================
+            // NEW IP
+            // ==================================
 
             accountStatus.textContent =
                 "Multiple not detected";
 
-            accountStatus.classList.add("success");
+            accountStatus.classList.add(
+                "success"
+            );
 
+            await sleep(1000);
+
+            // ==================================
+            // OPEN BOT WITH TOKEN
+            // ==================================
+
+            if (data.token) {
+
+                const botLink =
+                    BOT_URL +
+                    "?start=verified_" +
+                    data.token;
+
+                window.location.href =
+                    botLink;
+
+                return;
+            }
 
         } catch (error) {
 
             console.error(error);
-
 
             errorMessage.textContent =
                 "Verification failed. Please try again.";
@@ -396,23 +404,25 @@
             errorMessage.style.display =
                 "block";
 
-
             ipStatus.textContent =
                 "Failed";
 
-            ipStatus.classList.remove("loading");
-            ipStatus.classList.add("failed");
+            ipStatus.classList.remove(
+                "loading"
+            );
 
+            ipStatus.classList.add(
+                "failed"
+            );
 
             accountStatus.textContent =
                 "Failed";
 
-            accountStatus.classList.add("failed");
-
+            accountStatus.classList.add(
+                "failed"
+            );
         }
-
     }
-
 
     function returnToBot() {
 
@@ -428,13 +438,7 @@
             history.back();
 
         }
-
     }
-
-
-    // ==========================================
-    // START VERIFICATION
-    // ==========================================
 
     startVerification();
 
