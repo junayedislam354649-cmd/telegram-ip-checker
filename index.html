@@ -98,6 +98,10 @@
             color: #5ca9ff;
         }
 
+        .status.failed {
+            color: #ff6b6b;
+        }
+
         .return-button {
             width: 100%;
             border: none;
@@ -123,7 +127,6 @@
             display: none;
         }
 
-        /* FOOTER */
         .footer {
             text-align: center;
             margin-top: 24px;
@@ -230,7 +233,6 @@
     </button>
 
 
-    <!-- YOUR CREDIT -->
     <div class="footer">
         This API made by
         <a
@@ -252,7 +254,6 @@
     tg.expand();
 
 
-    // Cloudflare Worker API
     const API_URL =
         "https://checker.junayedislam354649.workers.dev/api/check";
 
@@ -279,7 +280,10 @@
 
         try {
 
+            // =====================================
             // SYSTEM
+            // =====================================
+
             await sleep(800);
 
             systemStatus.textContent =
@@ -289,7 +293,10 @@
             systemStatus.classList.add("success");
 
 
+            // =====================================
             // API REQUEST
+            // =====================================
+
             ipStatus.textContent =
                 "Checking...";
 
@@ -303,9 +310,11 @@
 
 
             if (!response.ok) {
+
                 throw new Error(
                     "API request failed"
                 );
+
             }
 
 
@@ -314,13 +323,18 @@
 
 
             if (!data.success) {
+
                 throw new Error(
                     "Verification failed"
                 );
+
             }
 
 
+            // =====================================
             // IP CHECKED
+            // =====================================
+
             await sleep(500);
 
             ipStatus.textContent =
@@ -330,8 +344,40 @@
             ipStatus.classList.add("success");
 
 
+            // =====================================
             // MULTIPLE ACCOUNT CHECK
+            // =====================================
+
             await sleep(700);
+
+
+            // -------------------------------------
+            // MULTIPLE DETECTED
+            // -------------------------------------
+
+            if (data.multiple === true) {
+
+                accountStatus.textContent =
+                    "Multiple detected";
+
+                accountStatus.classList.add("failed");
+
+
+                errorMessage.textContent =
+                    "Multiple account detected. Verification failed.";
+
+                errorMessage.style.display =
+                    "block";
+
+
+                return;
+
+            }
+
+
+            // -------------------------------------
+            // NO MULTIPLE ACCOUNT
+            // -------------------------------------
 
             accountStatus.textContent =
                 "Multiple not detected";
@@ -343,13 +389,25 @@
 
             console.error(error);
 
+
+            errorMessage.textContent =
+                "Verification failed. Please try again.";
+
             errorMessage.style.display =
                 "block";
+
 
             ipStatus.textContent =
                 "Failed";
 
             ipStatus.classList.remove("loading");
+            ipStatus.classList.add("failed");
+
+
+            accountStatus.textContent =
+                "Failed";
+
+            accountStatus.classList.add("failed");
 
         }
 
@@ -374,7 +432,10 @@
     }
 
 
-    // Start verification
+    // ==========================================
+    // START VERIFICATION
+    // ==========================================
+
     startVerification();
 
 </script>
