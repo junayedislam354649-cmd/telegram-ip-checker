@@ -1,5 +1,5 @@
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
 
     const url = new URL(request.url);
 
@@ -14,11 +14,56 @@ export default {
         request.headers.get("X-Forwarded-For") ||
         "unknown";
 
+
+      // ========================================
+      // CHECK IF IP ALREADY EXISTS
+      // ========================================
+
+      const existingIP = await env.IP_DATABASE.get(ip);
+
+
+      // ========================================
+      // SAME IP DETECTED
+      // ========================================
+
+      if (existingIP) {
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            status: "multiple",
+            ip: ip,
+            multiple: true
+          }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*"
+            }
+          }
+        );
+
+      }
+
+
+      // ========================================
+      // NEW IP → SAVE IT
+      // ========================================
+
+      await env.IP_DATABASE.put(
+        ip,
+        JSON.stringify({
+          first_seen: new Date().toISOString()
+        })
+      );
+
+
       return new Response(
         JSON.stringify({
           success: true,
-          status: "ok",
-          ip: ip
+          status: "new",
+          ip: ip,
+          multiple: false
         }),
         {
           headers: {
@@ -40,6 +85,7 @@ export default {
       <html>
 
       <head>
+
         <title>IP Checker API</title>
 
         <style>
@@ -106,11 +152,13 @@ export default {
 
       </html>
       `,
+
       {
         headers: {
           "Content-Type": "text/html; charset=UTF-8"
         }
       }
     );
+
   }
 };
