@@ -1,1 +1,619 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <title>IP Checker</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      background:
+        radial-gradient(
+          circle at top,
+          #17233a 0%,
+          #0b111c 45%,
+          #070b12 100%
+        );
+
+      color: #ffffff;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      overflow: hidden;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+
+      padding: 28px 20px;
+
+      text-align: center;
+    }
+
+    /* LOGO */
+
+    .logo {
+      width: 82px;
+      height: 82px;
+
+      margin: 0 auto 20px;
+
+      border-radius: 25px;
+
+      background: rgba(255,255,255,0.07);
+
+      border: 1px solid rgba(255,255,255,0.08);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      box-shadow:
+        0 15px 45px rgba(0,0,0,0.35);
+
+      font-size: 34px;
+    }
+
+    .title {
+      font-size: 25px;
+      font-weight: 750;
+
+      margin-bottom: 7px;
+    }
+
+    .subtitle {
+      color: #8e9aaa;
+
+      font-size: 13px;
+
+      margin-bottom: 30px;
+    }
+
+    /* STATUS */
+
+    .status {
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+
+      gap: 14px;
+
+      padding: 16px;
+
+      margin-bottom: 12px;
+
+      border-radius: 17px;
+
+      background: rgba(255,255,255,0.055);
+
+      border: 1px solid rgba(255,255,255,0.06);
+
+      text-align: left;
+
+      opacity: 0.38;
+
+      transform: translateY(5px);
+
+      transition:
+        opacity 0.4s ease,
+        transform 0.4s ease,
+        background 0.4s ease;
+    }
+
+    .status.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .status.done {
+      opacity: 1;
+      transform: translateY(0);
+
+      background: rgba(40, 200, 120, 0.08);
+
+      border-color: rgba(40, 200, 120, 0.15);
+    }
+
+    /* ICON */
+
+    .status-icon {
+      width: 42px;
+      height: 42px;
+
+      min-width: 42px;
+
+      border-radius: 14px;
+
+      background: rgba(255,255,255,0.07);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 18px;
+
+      transition: 0.3s;
+    }
+
+    .done .status-icon {
+      background: rgba(35, 210, 125, 0.16);
+
+      color: #35df8b;
+    }
+
+    .status-title {
+      font-size: 14px;
+
+      font-weight: 650;
+
+      margin-bottom: 4px;
+    }
+
+    .status-sub {
+      color: #7f8b9b;
+
+      font-size: 12px;
+    }
+
+    /* CHECK */
+
+    .check {
+      display: none;
+
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .done .loading-icon {
+      display: none;
+    }
+
+    .done .check {
+      display: block;
+    }
+
+    /* LOADING ANIMATION */
+
+    .spinner {
+      width: 17px;
+      height: 17px;
+
+      border-radius: 50%;
+
+      border: 2px solid rgba(255,255,255,0.18);
+
+      border-top-color: #ffffff;
+
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+
+      to {
+        transform: rotate(360deg);
+      }
+
+    }
+
+    /* BUTTON */
+
+    .return-button {
+
+      width: 100%;
+
+      border: none;
+
+      padding: 16px;
+
+      margin-top: 18px;
+
+      border-radius: 16px;
+
+      background: #2481cc;
+
+      color: #ffffff;
+
+      font-size: 15px;
+
+      font-weight: 700;
+
+      cursor: pointer;
+
+      opacity: 0;
+
+      transform: translateY(10px);
+
+      pointer-events: none;
+
+      transition:
+        opacity 0.4s ease,
+        transform 0.4s ease;
+    }
+
+    .return-button.show {
+
+      opacity: 1;
+
+      transform: translateY(0);
+
+      pointer-events: auto;
+
+    }
+
+    .return-button:active {
+
+      transform: scale(0.98);
+
+    }
+
+    /* FOOTER */
+
+    .footer {
+
+      margin-top: 18px;
+
+      color: #596474;
+
+      font-size: 11px;
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <main class="app">
+
+    <div class="logo">
+      ✓
+    </div>
+
+    <div class="title">
+      IP Checker
+    </div>
+
+    <div class="subtitle">
+      Security verification
+    </div>
+
+
+    <!-- SYSTEM -->
+
+    <div
+      class="status"
+      id="systemStatus"
+    >
+
+      <div class="status-icon">
+
+        <div class="spinner loading-icon"></div>
+
+        <span class="check">✓</span>
+
+      </div>
+
+      <div>
+
+        <div class="status-title">
+          Loading system
+        </div>
+
+        <div
+          class="status-sub"
+          id="systemText"
+        >
+          Please wait...
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- IP -->
+
+    <div
+      class="status"
+      id="ipStatus"
+    >
+
+      <div class="status-icon">
+
+        <div class="spinner loading-icon"></div>
+
+        <span class="check">✓</span>
+
+      </div>
+
+      <div>
+
+        <div class="status-title">
+          Checking IP
+        </div>
+
+        <div
+          class="status-sub"
+          id="ipText"
+        >
+          Waiting...
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- MULTIPLE ACCOUNTS -->
+
+    <div
+      class="status"
+      id="accountStatus"
+    >
+
+      <div class="status-icon">
+
+        <div class="spinner loading-icon"></div>
+
+        <span class="check">✓</span>
+
+      </div>
+
+      <div>
+
+        <div class="status-title">
+          Checking multiple accounts
+        </div>
+
+        <div
+          class="status-sub"
+          id="accountText"
+        >
+          Waiting...
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <button
+      class="return-button"
+      id="returnButton"
+    >
+      Return to Bot
+    </button>
+
+
+    <div class="footer">
+      Telegram Mini App
+    </div>
+
+  </main>
+
+
+  <script>
+
+    const tg = window.Telegram?.WebApp;
+
+
+    /*
+    ============================
+    TELEGRAM MINI APP
+    ============================
+    */
+
+    if (tg) {
+
+      tg.ready();
+
+      tg.expand();
+
+    }
+
+
+    /*
+    ============================
+    DELAY
+    ============================
+    */
+
+    function sleep(ms) {
+
+      return new Promise(
+        resolve => setTimeout(resolve, ms)
+      );
+
+    }
+
+
+    /*
+    ============================
+    ACTIVATE
+    ============================
+    */
+
+    function activate(id) {
+
+      const element =
+        document.getElementById(id);
+
+      element.classList.add("active");
+
+    }
+
+
+    /*
+    ============================
+    COMPLETE
+    ============================
+    */
+
+    function complete(id) {
+
+      const element =
+        document.getElementById(id);
+
+      element.classList.add("active");
+
+      element.classList.add("done");
+
+    }
+
+
+    /*
+    ============================
+    MAIN CHECKER
+    ============================
+    */
+
+    async function startChecker() {
+
+
+      /*
+      ----------------------------
+      1. SYSTEM
+      ----------------------------
+      */
+
+      activate("systemStatus");
+
+      await sleep(1500);
+
+      complete("systemStatus");
+
+      document.getElementById(
+        "systemText"
+      ).textContent =
+        "System loaded";
+
+
+      /*
+      ----------------------------
+      2. IP
+      ----------------------------
+      */
+
+      await sleep(500);
+
+      activate("ipStatus");
+
+      await sleep(1600);
+
+      complete("ipStatus");
+
+      document.getElementById(
+        "ipText"
+      ).textContent =
+        "IP checked";
+
+
+      /*
+      ----------------------------
+      3. MULTIPLE ACCOUNTS
+      ----------------------------
+      */
+
+      await sleep(500);
+
+      activate("accountStatus");
+
+      await sleep(1800);
+
+      complete("accountStatus");
+
+      document.getElementById(
+        "accountText"
+      ).textContent =
+        "Multiple not detected";
+
+
+      /*
+      ----------------------------
+      4. RETURN BUTTON
+      ----------------------------
+      */
+
+      await sleep(500);
+
+      document
+        .getElementById("returnButton")
+        .classList.add("show");
+
+    }
+
+
+    /*
+    ============================
+    RETURN TO BOT
+    ============================
+    */
+
+    document
+      .getElementById("returnButton")
+      .addEventListener(
+        "click",
+        function () {
+
+          if (tg) {
+
+            tg.close();
+
+          } else {
+
+            window.history.back();
+
+          }
+
+        }
+      );
+
+
+    /*
+    ============================
+    START
+    ============================
+    */
+
+    startChecker();
+
+  </script>
+
+</body>
+
+</html>
+```
 
