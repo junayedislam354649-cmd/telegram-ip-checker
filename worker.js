@@ -3,12 +3,22 @@ export default {
 
     const url = new URL(request.url);
 
+    // ==========================================
+    // IP CHECK API
+    // ==========================================
+
     if (url.pathname === "/api/check") {
+
+      const ip =
+        request.headers.get("CF-Connecting-IP") ||
+        request.headers.get("X-Forwarded-For") ||
+        "unknown";
 
       return new Response(
         JSON.stringify({
           success: true,
-          status: "ok"
+          status: "ok",
+          ip: ip
         }),
         {
           headers: {
@@ -19,14 +29,21 @@ export default {
       );
     }
 
+
+    // ==========================================
+    // API HOME PAGE
+    // ==========================================
+
     return new Response(
       `
       <!DOCTYPE html>
       <html>
+
       <head>
         <title>IP Checker API</title>
 
         <style>
+
           body {
             background: #0b0f14;
             color: white;
@@ -58,7 +75,9 @@ export default {
           a:hover {
             text-decoration: underline;
           }
+
         </style>
+
       </head>
 
       <body>
@@ -73,7 +92,10 @@ export default {
 
           <p>
             This API made by
-            <a href="https://t.me/CallJunaeid" target="_blank">
+            <a
+              href="https://t.me/CallJunaeid"
+              target="_blank"
+            >
               @CallJunaeid
             </a>
           </p>
@@ -81,6 +103,7 @@ export default {
         </div>
 
       </body>
+
       </html>
       `,
       {
