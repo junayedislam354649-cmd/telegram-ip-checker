@@ -257,6 +257,12 @@
     const API_URL =
         "https://checker.junayedislam354649.workers.dev/api/check";
 
+    const tgUser =
+    tg.initDataUnsafe &&
+    tg.initDataUnsafe.user
+        ? tg.initDataUnsafe.user.id
+        : null;
+
     const VERIFY_API =
         "https://checker.junayedislam354649.workers.dev/api/verify";
 
@@ -306,7 +312,11 @@
             );
 
             const response =
-                await fetch(API_URL);
+                await fetch(
+                    API_URL +
+                    "?user_id=" +
+                    encodeURIComponent(tgUser || "")
+                );
 
             if (!response.ok) {
 
