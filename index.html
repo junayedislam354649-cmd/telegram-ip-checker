@@ -87,6 +87,7 @@
             font-size: 13px;
             font-weight: 600;
             color: #8d99a8;
+            text-align: right;
         }
 
         .status.success {
@@ -121,6 +122,25 @@
             margin-top: 15px;
             display: none;
         }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: #6f7b89;
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: #5ca9ff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer a:active {
+            opacity: 0.7;
+        }
     </style>
 </head>
 
@@ -133,15 +153,20 @@
         <p>Security verification in progress</p>
     </div>
 
+
     <!-- SYSTEM -->
     <div class="status-card">
         <div class="status-left">
+
             <div class="icon">⚙️</div>
 
             <div>
                 <div class="title">Loading system</div>
-                <div class="subtitle">Preparing verification system</div>
+                <div class="subtitle">
+                    Preparing verification system
+                </div>
             </div>
+
         </div>
 
         <div id="systemStatus" class="status loading">
@@ -153,12 +178,16 @@
     <!-- IP -->
     <div class="status-card">
         <div class="status-left">
+
             <div class="icon">🌐</div>
 
             <div>
                 <div class="title">Checking IP</div>
-                <div class="subtitle">Verifying your connection</div>
+                <div class="subtitle">
+                    Verifying your connection
+                </div>
             </div>
+
         </div>
 
         <div id="ipStatus" class="status">
@@ -170,12 +199,19 @@
     <!-- MULTIPLE ACCOUNTS -->
     <div class="status-card">
         <div class="status-left">
+
             <div class="icon">👤</div>
 
             <div>
-                <div class="title">Checking multiple accounts</div>
-                <div class="subtitle">Checking verification status</div>
+                <div class="title">
+                    Checking multiple accounts
+                </div>
+
+                <div class="subtitle">
+                    Checking verification status
+                </div>
             </div>
+
         </div>
 
         <div id="accountStatus" class="status">
@@ -192,6 +228,18 @@
     <button class="return-button" onclick="returnToBot()">
         Return to Bot
     </button>
+
+
+    <!-- YOUR CREDIT -->
+    <div class="footer">
+        This API made by
+        <a
+            href="https://t.me/CallJunaeid"
+            target="_blank"
+        >
+            @CallJunaeid
+        </a>
+    </div>
 
 </div>
 
@@ -231,58 +279,58 @@
 
         try {
 
-            // -----------------------------------------
             // SYSTEM
-            // -----------------------------------------
-
             await sleep(800);
 
-            systemStatus.textContent = "System loaded";
+            systemStatus.textContent =
+                "System loaded";
+
             systemStatus.classList.remove("loading");
             systemStatus.classList.add("success");
 
 
-            // -----------------------------------------
             // API REQUEST
-            // -----------------------------------------
+            ipStatus.textContent =
+                "Checking...";
 
-            ipStatus.textContent = "Checking...";
             ipStatus.classList.add("loading");
 
 
-            const response = await fetch(API_URL, {
-                method: "GET"
-            });
+            const response =
+                await fetch(API_URL, {
+                    method: "GET"
+                });
 
 
             if (!response.ok) {
-                throw new Error("API request failed");
+                throw new Error(
+                    "API request failed"
+                );
             }
 
 
-            const data = await response.json();
+            const data =
+                await response.json();
 
 
             if (!data.success) {
-                throw new Error("Verification failed");
+                throw new Error(
+                    "Verification failed"
+                );
             }
 
 
-            // -----------------------------------------
             // IP CHECKED
-            // -----------------------------------------
-
             await sleep(500);
 
-            ipStatus.textContent = "IP checked";
+            ipStatus.textContent =
+                "IP checked";
+
             ipStatus.classList.remove("loading");
             ipStatus.classList.add("success");
 
 
-            // -----------------------------------------
             // MULTIPLE ACCOUNT CHECK
-            // -----------------------------------------
-
             await sleep(700);
 
             accountStatus.textContent =
@@ -295,9 +343,12 @@
 
             console.error(error);
 
-            errorMessage.style.display = "block";
+            errorMessage.style.display =
+                "block";
 
-            ipStatus.textContent = "Failed";
+            ipStatus.textContent =
+                "Failed";
+
             ipStatus.classList.remove("loading");
 
         }
@@ -307,8 +358,10 @@
 
     function returnToBot() {
 
-        if (window.Telegram &&
-            window.Telegram.WebApp) {
+        if (
+            window.Telegram &&
+            window.Telegram.WebApp
+        ) {
 
             tg.close();
 
@@ -321,7 +374,7 @@
     }
 
 
-    // Start automatically
+    // Start verification
     startVerification();
 
 </script>
