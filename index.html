@@ -388,8 +388,21 @@
                     "?start=verified_" +
                     data.token;
 
-                window.location.href =
-                    botLink;
+                if (
+                    window.Telegram &&
+                    window.Telegram.WebApp
+                ) {
+
+                    tg.openTelegramLink(
+                        botLink
+                    );
+
+                } else {
+
+                    window.location.href =
+                        botLink;
+
+                }
 
                 return;
             }
