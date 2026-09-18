@@ -1,211 +1,391 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>IP Verification</title>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script
+        src="https://telegram.org/js/telegram-web-app.js"
+    ></script>
+
 
     <style>
+
         * {
             box-sizing: border-box;
         }
 
+
         body {
+
             margin: 0;
+
             padding: 20px;
+
             min-height: 100vh;
+
             background: #0b0f14;
+
             color: #ffffff;
+
             font-family: Arial, sans-serif;
+
         }
+
 
         .container {
+
             max-width: 480px;
+
             margin: auto;
+
         }
+
 
         .header {
+
             text-align: center;
+
             margin-top: 20px;
+
             margin-bottom: 30px;
+
         }
+
 
         .header h1 {
+
             margin: 0;
+
             font-size: 27px;
+
         }
+
 
         .header p {
+
             margin-top: 8px;
+
             color: #8d99a8;
+
             font-size: 14px;
+
         }
+
 
         .status-card {
+
             background: #151b23;
+
             border: 1px solid #222b36;
+
             border-radius: 18px;
+
             padding: 18px;
+
             margin-bottom: 12px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
         }
+
 
         .status-left {
+
             display: flex;
+
             align-items: center;
+
             gap: 14px;
+
         }
+
 
         .icon {
+
             width: 42px;
+
             height: 42px;
+
             border-radius: 13px;
+
             background: #202934;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             font-size: 20px;
+
         }
+
 
         .title {
+
             font-size: 15px;
+
             font-weight: 600;
+
         }
+
 
         .subtitle {
+
             margin-top: 4px;
+
             color: #7f8b99;
+
             font-size: 12px;
+
         }
+
 
         .status {
+
             font-size: 13px;
+
             font-weight: 600;
+
             color: #8d99a8;
+
             text-align: right;
+
         }
+
 
         .status.success {
+
             color: #32d583;
+
         }
+
 
         .status.loading {
+
             color: #5ca9ff;
+
         }
+
 
         .status.failed {
+
             color: #ff6b6b;
+
         }
+
 
         .return-button {
+
             width: 100%;
+
             border: none;
+
             border-radius: 16px;
+
             padding: 16px;
+
             margin-top: 18px;
+
             background: #2481cc;
+
             color: white;
+
             font-size: 16px;
+
             font-weight: 600;
+
             cursor: pointer;
+
         }
+
 
         .return-button:active {
+
             transform: scale(0.98);
+
         }
+
 
         .error {
+
             text-align: center;
+
             color: #ff6b6b;
+
             font-size: 13px;
+
             margin-top: 15px;
+
             display: none;
+
         }
+
 
         .footer {
+
             text-align: center;
+
             margin-top: 24px;
+
             margin-bottom: 8px;
+
             color: #6f7b89;
+
             font-size: 12px;
+
         }
+
 
         .footer a {
+
             color: #5ca9ff;
+
             text-decoration: none;
+
             font-weight: 600;
+
         }
 
+
         .footer a:active {
+
             opacity: 0.7;
+
         }
+
     </style>
+
 </head>
+
 
 <body>
 
+
 <div class="container">
 
+
+    <!-- ==================================
+         HEADER
+    ================================== -->
+
     <div class="header">
-        <h1>IP Verification</h1>
-        <p>Security verification in progress</p>
+
+        <h1>
+            IP Verification
+        </h1>
+
+        <p>
+            Security verification in progress
+        </p>
+
     </div>
 
 
-    <!-- SYSTEM -->
+
+    <!-- ==================================
+         SYSTEM
+    ================================== -->
+
     <div class="status-card">
+
         <div class="status-left">
 
-            <div class="icon">⚙️</div>
+            <div class="icon">
+                ⚙️
+            </div>
 
             <div>
-                <div class="title">Loading system</div>
+
+                <div class="title">
+                    Loading system
+                </div>
+
                 <div class="subtitle">
                     Preparing verification system
                 </div>
+
             </div>
 
         </div>
 
-        <div id="systemStatus" class="status loading">
+
+        <div
+            id="systemStatus"
+            class="status loading"
+        >
             Checking...
         </div>
+
     </div>
 
 
-    <!-- IP -->
+
+    <!-- ==================================
+         IP
+    ================================== -->
+
     <div class="status-card">
+
         <div class="status-left">
 
-            <div class="icon">🌐</div>
+            <div class="icon">
+                🌐
+            </div>
 
             <div>
-                <div class="title">Checking IP</div>
+
+                <div class="title">
+                    Checking IP
+                </div>
+
                 <div class="subtitle">
                     Verifying your connection
                 </div>
+
             </div>
 
         </div>
 
-        <div id="ipStatus" class="status">
+
+        <div
+            id="ipStatus"
+            class="status"
+        >
             Waiting
         </div>
+
     </div>
 
 
-    <!-- MULTIPLE ACCOUNTS -->
+
+    <!-- ==================================
+         MULTIPLE ACCOUNTS
+    ================================== -->
+
     <div class="status-card">
+
         <div class="status-left">
 
-            <div class="icon">👤</div>
+            <div class="icon">
+                👤
+            </div>
 
             <div>
+
                 <div class="title">
                     Checking multiple accounts
                 </div>
@@ -213,40 +393,73 @@
                 <div class="subtitle">
                     Checking verification status
                 </div>
+
             </div>
 
         </div>
 
-        <div id="accountStatus" class="status">
+
+        <div
+            id="accountStatus"
+            class="status"
+        >
             Waiting
         </div>
+
     </div>
 
 
-    <div id="errorMessage" class="error">
+
+    <!-- ==================================
+         ERROR / SUCCESS MESSAGE
+    ================================== -->
+
+    <div
+        id="errorMessage"
+        class="error"
+    >
         Verification failed. Please try again.
     </div>
 
 
-    <button class="return-button" onclick="returnToBot()">
+
+    <!-- ==================================
+         RETURN BUTTON
+    ================================== -->
+
+    <button
+        class="return-button"
+        onclick="returnToBot()"
+    >
         Return to Bot
     </button>
 
 
+
+    <!-- ==================================
+         FOOTER
+    ================================== -->
+
     <div class="footer">
+
         This API made by
+
         <a
             href="https://t.me/CallJunaeid"
             target="_blank"
         >
             @CallJunaeid
         </a>
+
     </div>
+
 
 </div>
 
 
+
 <script>
+
 
     // ==================================
     // TELEGRAM WEB APP
@@ -255,8 +468,11 @@
     const tg =
         window.Telegram.WebApp;
 
+
     tg.ready();
+
     tg.expand();
+
 
 
     // ==================================
@@ -266,8 +482,10 @@
     const API_URL =
         "https://checker.junayedislam354649.workers.dev/api/check";
 
+
     const BOT_URL =
         "https://t.me/Starfreearn_bot";
+
 
 
     // ==================================
@@ -281,11 +499,22 @@
             : null;
 
 
+
     // ==================================
     // VERIFICATION STATE
     // ==================================
 
-    let verificationPassed = false;
+    let verificationPassed =
+        false;
+
+
+    // IMPORTANT:
+    // Keep token outside startVerification()
+    // so returnToBot() can access it.
+
+    let verificationToken =
+        null;
+
 
 
     // ==================================
@@ -296,13 +525,16 @@
 
         return new Promise(
             resolve =>
+
                 setTimeout(
                     resolve,
                     ms
                 )
+
         );
 
     }
+
 
 
     // ==================================
@@ -311,20 +543,24 @@
 
     async function startVerification() {
 
+
         const systemStatus =
             document.getElementById(
                 "systemStatus"
             );
+
 
         const ipStatus =
             document.getElementById(
                 "ipStatus"
             );
 
+
         const accountStatus =
             document.getElementById(
                 "accountStatus"
             );
+
 
         const errorMessage =
             document.getElementById(
@@ -332,24 +568,44 @@
             );
 
 
+
         try {
+
+
+            // ==================================
+            // CHECK TELEGRAM USER
+            // ==================================
+
+            if (!tgUser) {
+
+                throw new Error(
+                    "Telegram user information not found."
+                );
+
+            }
+
+
 
             // ==================================
             // SYSTEM LOADING
             // ==================================
 
-            await sleep(800);
+            await sleep(500);
+
 
             systemStatus.textContent =
                 "System loaded";
+
 
             systemStatus.classList.remove(
                 "loading"
             );
 
+
             systemStatus.classList.add(
                 "success"
             );
+
 
 
             // ==================================
@@ -359,55 +615,91 @@
             ipStatus.textContent =
                 "Checking...";
 
+
+            ipStatus.classList.remove(
+                "failed"
+            );
+
+
             ipStatus.classList.add(
                 "loading"
             );
 
 
+
+            // ==================================
+            // API URL
+            // ==================================
+
             const apiUrl =
                 API_URL +
                 "?user_id=" +
                 encodeURIComponent(
-                    tgUser || ""
+                    tgUser
                 ) +
                 "&t=" +
                 Date.now();
 
 
+
             // ==================================
-            // API REQUEST
+            // ABORT CONTROLLER
             // ==================================
 
             const controller =
                 new AbortController();
 
+
             const timeout =
                 setTimeout(
+
                     () => {
+
                         controller.abort();
+
                     },
+
                     10000
+
                 );
+
 
 
             let response;
 
 
+
             try {
+
+
+                // ==================================
+                // API REQUEST
+                // ==================================
 
                 response =
                     await fetch(
+
                         apiUrl,
+
                         {
+
                             method: "GET",
+
                             mode: "cors",
+
                             cache: "no-store",
+
                             signal:
                                 controller.signal
+
                         }
+
                     );
 
-            } finally {
+
+            }
+
+            finally {
 
                 clearTimeout(
                     timeout
@@ -416,8 +708,9 @@
             }
 
 
+
             // ==================================
-            // RESPONSE
+            // HTTP STATUS
             // ==================================
 
             if (!response.ok) {
@@ -430,21 +723,40 @@
             }
 
 
+
+            // ==================================
+            // JSON
+            // ==================================
+
             const data =
                 await response.json();
 
 
+
+            console.log(
+                "Verification API:",
+                data
+            );
+
+
+
             // ==================================
-            // CHECK API SUCCESS
+            // API SUCCESS
             // ==================================
 
-            if (!data.success) {
+            if (
+                data.success !== true
+            ) {
 
                 throw new Error(
-                    "Verification failed"
+
+                    data.error ||
+                    "Verification failed."
+
                 );
 
             }
+
 
 
             // ==================================
@@ -453,19 +765,24 @@
 
             await sleep(500);
 
+
             ipStatus.textContent =
                 "IP checked";
+
 
             ipStatus.classList.remove(
                 "loading"
             );
+
 
             ipStatus.classList.add(
                 "success"
             );
 
 
-            await sleep(700);
+
+            await sleep(500);
+
 
 
             // ==================================
@@ -476,19 +793,24 @@
                 data.banned === true
             ) {
 
+
                 accountStatus.textContent =
                     "IP detected";
+
 
                 accountStatus.classList.remove(
                     "loading"
                 );
 
+
                 accountStatus.classList.add(
                     "failed"
                 );
 
+
                 errorMessage.textContent =
                     "🚫 IP detected. You are banned.";
+
 
                 errorMessage.style.display =
                     "block";
@@ -503,8 +825,22 @@
             }
 
 
+
             // ==================================
-            // ✅ ALREADY VERIFIED
+            // 🔐 SAVE TOKEN
+            // ==================================
+
+            if (data.token) {
+
+                verificationToken =
+                    data.token;
+
+            }
+
+
+
+            // ==================================
+            // ACCOUNT STATUS
             // ==================================
 
             if (
@@ -514,272 +850,270 @@
                 accountStatus.textContent =
                     "Already verified";
 
-                accountStatus.classList.remove(
-                    "loading"
-                );
+            }
 
-                accountStatus.classList.add(
-                    "success"
-                );
+            else {
 
-
-                errorMessage.textContent =
-                    "✅ You are already verified.";
-
-                errorMessage.style.display =
-                    "block";
-
-
-                verificationPassed =
-                    true;
-
-
-                await sleep(1500);
-
-
-                // ==================================
-                // OPEN BOT
-                // ==================================
-
-                const botLink =
-                    BOT_URL +
-                    "?start=already_verified";
-
-
-                if (
-                    window.Telegram &&
-                    window.Telegram.WebApp
-                ) {
-
-                    tg.openTelegramLink(
-                        botLink
-                    );
-
-                } else {
-
-                    window.location.href =
-                        botLink;
-
-                }
-
-
-                return;
+                accountStatus.textContent =
+                    "Multiple not detected";
 
             }
 
 
-            // ==================================
-            // 🆕 NEW USER / NEW IP
-            // ==================================
-
-            accountStatus.textContent =
-                "Multiple not detected";
 
             accountStatus.classList.remove(
                 "loading"
             );
+
 
             accountStatus.classList.add(
                 "success"
             );
 
 
+
+            // ==================================
+            // VERIFICATION SUCCESS
+            // ==================================
+
             verificationPassed =
                 true;
 
 
-            await sleep(1000);
-
 
             // ==================================
-            // 🔐 VERIFICATION TOKEN
+            // SUCCESS MESSAGE
             // ==================================
 
-            let verificationToken = null;
+            errorMessage.textContent =
+                "✅ Verification completed successfully.";
 
 
-            // ==================================
-            // OPEN BOT WITH TOKEN
-            // ==================================
-
-            if (data.token) {
-
-                verificationToken =
-                    data.token;
-
-                // ----------------------------------
-                // DO NOT OPEN BOT AUTOMATICALLY
-                // ----------------------------------
-                // User will click Return to Bot
-                // after verification is complete.
-
-                verificationPassed = true;
-
-                return;
-
-            }
+            errorMessage.style.display =
+                "block";
 
 
-            // ==================================
-            // TOKEN MISSING
-            // ==================================
 
-            throw new Error(
-                "Verification token missing"
+            console.log(
+                "Verification passed:",
+                verificationPassed
             );
 
 
-            } catch (error) {
-
-                console.error(
-                    "Verification error:",
-                    error
-                );
+            console.log(
+                "Verification token:",
+                verificationToken
+            );
 
 
-                // ==================================
-                // ERROR MESSAGE
-                // ==================================
 
-                if (
-                    error.name ===
-                    "AbortError"
-                ) {
+            // ==================================
+            // IMPORTANT
+            // ==================================
+            //
+            // DO NOT OPEN BOT HERE.
+            //
+            // User must manually press:
+            //
+            // Return to Bot
+            //
+            // ==================================
 
-                    errorMessage.textContent =
-                        "⚠️ Verification server timeout. Please try again.";
-
-                } else {
-
-                    errorMessage.textContent =
-                        "⚠️ " +
-                        error.message;
-
-                }
+        }
 
 
-                errorMessage.style.display =
-                    "block";
+        catch (error) {
 
 
-                // ==================================
-                // FAILED STATUS
-                // ==================================
-
-                ipStatus.textContent =
-                    "Failed";
-
-                ipStatus.classList.remove(
-                    "loading"
-                );
-
-                ipStatus.classList.add(
-                    "failed"
-                );
+            console.error(
+                "Verification error:",
+                error
+            );
 
 
-                accountStatus.textContent =
-                    "Failed";
 
-                accountStatus.classList.remove(
-                    "loading"
-                );
+            // ==================================
+            // ERROR MESSAGE
+            // ==================================
 
-                accountStatus.classList.add(
-                    "failed"
-                );
+            if (
+                error.name ===
+                "AbortError"
+            ) {
 
+                errorMessage.textContent =
+                    "⚠️ Verification server timeout. Please try again.";
 
-                verificationPassed =
-                    false;
+            }
+
+            else {
+
+                errorMessage.textContent =
+                    "⚠️ " +
+                    error.message;
 
             }
 
 
+
+            errorMessage.style.display =
+                "block";
+
+
+
             // ==================================
-            // 🔙 RETURN TO BOT
+            // FAILED STATUS
             // ==================================
 
-            function returnToBot() {
-
-                // ==================================
-                // NOT VERIFIED
-                // ==================================
-
-                if (!verificationPassed) {
-
-                    const errorMessage =
-                        document.getElementById(
-                            "errorMessage"
-                        );
-
-                    errorMessage.textContent =
-                        "🚫 Verification failed. You cannot return to the bot.";
-
-                    errorMessage.style.display =
-                        "block";
-
-                    return;
-                }
+            ipStatus.textContent =
+                "Failed";
 
 
-                // ==================================
-                // TOKEN MISSING
-                // ==================================
-
-                if (!verificationToken) {
-
-                    const errorMessage =
-                        document.getElementById(
-                            "errorMessage"
-                        );
-
-                    errorMessage.textContent =
-                        "⚠️ Verification token missing.";
-
-                    errorMessage.style.display =
-                        "block";
-
-                    return;
-                }
+            ipStatus.classList.remove(
+                "loading"
+            );
 
 
-                // ==================================
-                // OPEN BOT
-                // ==================================
-
-                const botLink =
-                    BOT_URL +
-                    "?start=verification_complete_" +
-                    verificationToken;
+            ipStatus.classList.add(
+                "failed"
+            );
 
 
-                if (
-                    window.Telegram &&
-                    window.Telegram.WebApp
-                ) {
 
-                    tg.openTelegramLink(
-                        botLink
-                    );
+            accountStatus.textContent =
+                "Failed";
 
-                    setTimeout(
-                        () => {
 
-                            tg.close();
+            accountStatus.classList.remove(
+                "loading"
+            );
 
-                        },
-                        500
-                    );
 
-                } else {
+            accountStatus.classList.add(
+                "failed"
+            );
 
-                    window.location.href =
-                        botLink;
 
-                }
 
-            }
+            verificationPassed =
+                false;
+
+
+            verificationToken =
+                null;
+
+        }
+
+    }
+
+
+
+    // ==================================
+    // 🔙 RETURN TO BOT
+    // ==================================
+
+    function returnToBot() {
+
+
+        const errorMessage =
+            document.getElementById(
+                "errorMessage"
+            );
+
+
+
+        // ==================================
+        // NOT VERIFIED
+        // ==================================
+
+        if (!verificationPassed) {
+
+
+            errorMessage.textContent =
+                "🚫 Verification failed. You cannot return to the bot.";
+
+
+            errorMessage.style.display =
+                "block";
+
+
+            return;
+
+        }
+
+
+
+        // ==================================
+        // TOKEN MISSING
+        // ==================================
+
+        if (!verificationToken) {
+
+
+            errorMessage.textContent =
+                "⚠️ Verification token missing. Please restart verification.";
+
+
+            errorMessage.style.display =
+                "block";
+
+
+            return;
+
+        }
+
+
+
+        // ==================================
+        // BOT LINK
+        // ==================================
+
+        const botLink =
+            BOT_URL +
+            "?start=verification_complete_" +
+            encodeURIComponent(
+                verificationToken
+            );
+
+
+
+        console.log(
+            "Opening bot:",
+            botLink
+        );
+
+
+
+        // ==================================
+        // OPEN TELEGRAM BOT
+        // ==================================
+
+        if (
+
+            window.Telegram &&
+            window.Telegram.WebApp
+
+        ) {
+
+
+            tg.openTelegramLink(
+                botLink
+            );
+
+
+        }
+
+        else {
+
+
+            window.location.href =
+                botLink;
+
+        }
+
+    }
+
+
 
     // ==================================
     // 🚀 START
@@ -787,8 +1121,10 @@
 
     startVerification();
 
+
 </script>
 
 
 </body>
+
 </html>
