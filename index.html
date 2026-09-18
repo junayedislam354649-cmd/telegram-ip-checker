@@ -279,6 +279,12 @@
 
     async function startVerification() {
 
+        console.log("=== VERIFICATION START ===");
+        console.log("Telegram object:", window.Telegram);
+        console.log("WebApp object:", window.Telegram?.WebApp);
+        console.log("Telegram User:", tgUser);
+        console.log("API URL:", API_URL);
+
         const systemStatus =
             document.getElementById("systemStatus");
 
@@ -345,6 +351,8 @@
                     10000
                 );
 
+            console.log("🚀 FETCH STARTED");
+
             let response;
 
             try {
@@ -360,6 +368,8 @@
                         }
                     );
 
+             console.log("✅ FETCH FINISHED");
+
             } catch (error) {
 
                 console.error(
@@ -367,20 +377,25 @@
                     error
                 );
 
-                if (
-                    error.name ===
-                    "AbortError"
-                ) {
+                errorMessage.textContent =
+                    "FETCH ERROR: " +
+                    error.message;
 
-                    throw new Error(
-                        "API request timeout"
-                    );
+                errorMessage.style.display =
+                    "block";
 
-                }
+                ipStatus.textContent =
+                    "Failed";
 
-                throw new Error(
-                    "Unable to connect to verification server"
+                ipStatus.classList.remove(
+                    "loading"
                 );
+
+                ipStatus.classList.add(
+                    "failed"
+                );
+
+                return;
 
             } finally {
 
@@ -408,9 +423,6 @@
                 );
 
             }
-
-            const data =
-                await response.json();
 
             if (!data.success) {
 
