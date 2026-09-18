@@ -313,22 +313,92 @@
                 "loading"
             );
 
-            console.log("Telegram User ID:", tgUser);
-            console.log(
-                "API URL:", 
-                API_URL + "?user_id=" + encodeURIComponent(tgUser || "")
+            // ==================================
+            // 🌐 CHECK IP
+            // ==================================
+
+            ipStatus.textContent =
+                "Checking...";
+
+            ipStatus.classList.add(
+                "loading"
             );
 
-            const response =
-                await fetch(
-                    API_URL +
-                    "?user_id=" +
-                    encodeURIComponent(tgUser || "")
+            const apiUrl =
+                API_URL +
+                "?user_id=" +
+                encodeURIComponent(
+                    tgUser || ""
                 );
 
             console.log(
-                "API Response Status:", 
+                "API URL:",
+                apiUrl
+            );
+
+            const controller =
+                new AbortController();
+
+            const timeout =
+                setTimeout(
+                    () => controller.abort(),
+                    10000
+                );
+
+            let response;
+
+            try {
+
+                response =
+                    await fetch(
+                        apiUrl,
+                        {
+                            method: "GET",
+                            mode: "cors",
+                            cache: "no-store",
+                            signal: controller.signal
+                        }
+                    );
+
+            } catch (error) {
+
+                console.error(
+                    "FETCH ERROR:",
+                    error
+                );
+
+                if (
+                    error.name ===
+                    "AbortError"
+                ) {
+
+                    throw new Error(
+                        "API request timeout"
+                    );
+
+                }
+
+                throw new Error(
+                    "Unable to connect to verification server"
+                );
+
+            } finally {
+
+                clearTimeout(timeout);
+
+            }
+
+            console.log(
+                "API STATUS:",
                 response.status
+            );
+
+            const data =
+                await response.json();
+
+            console.log(
+                "API DATA:",
+                data
             );
 
             if (!response.ok) {
