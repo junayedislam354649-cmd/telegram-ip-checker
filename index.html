@@ -713,15 +713,12 @@
         // NOT VERIFIED
         // ==================================
 
-        if (
-            !verificationPassed
-        ) {
+        if (!verificationPassed) {
 
             const errorMessage =
                 document.getElementById(
                     "errorMessage"
                 );
-
 
             errorMessage.textContent =
                 "🚫 Verification failed. You cannot return to the Main Menu.";
@@ -729,9 +726,7 @@
             errorMessage.style.display =
                 "block";
 
-
             return;
-
         }
 
 
@@ -753,6 +748,13 @@
                 botLink
             );
 
+            setTimeout(
+                () => {
+                    tg.close();
+                },
+                300
+            );
+
         } else {
 
             window.location.href =
@@ -761,7 +763,6 @@
         }
 
     }
-
 
     // ==================================
     // 🚀 START
