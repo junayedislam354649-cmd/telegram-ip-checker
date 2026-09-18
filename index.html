@@ -592,33 +592,28 @@
 
 
             // ==================================
+            // 🔐 VERIFICATION TOKEN
+            // ==================================
+
+            let verificationToken = null;
+
+
+            // ==================================
             // OPEN BOT WITH TOKEN
             // ==================================
 
             if (data.token) {
 
-                const botLink =
-                    BOT_URL +
-                    "?start=verified_" +
+                verificationToken =
                     data.token;
 
+                // ----------------------------------
+                // DO NOT OPEN BOT AUTOMATICALLY
+                // ----------------------------------
+                // User will click Return to Bot
+                // after verification is complete.
 
-                if (
-                    window.Telegram &&
-                    window.Telegram.WebApp
-                ) {
-
-                    tg.openTelegramLink(
-                        botLink
-                    );
-
-                } else {
-
-                    window.location.href =
-                        botLink;
-
-                }
-
+                verificationPassed = true;
 
                 return;
 
@@ -634,135 +629,157 @@
             );
 
 
-        } catch (error) {
+            } catch (error) {
 
-            console.error(
-                "Verification error:",
-                error
-            );
+                console.error(
+                    "Verification error:",
+                    error
+                );
 
 
-            // ==================================
-            // ERROR MESSAGE
-            // ==================================
+                // ==================================
+                // ERROR MESSAGE
+                // ==================================
 
-            if (
-                error.name ===
-                "AbortError"
-            ) {
+                if (
+                    error.name ===
+                    "AbortError"
+                ) {
 
-                errorMessage.textContent =
-                    "⚠️ Verification server timeout. Please try again.";
+                    errorMessage.textContent =
+                        "⚠️ Verification server timeout. Please try again.";
 
-            } else {
+                } else {
 
-                errorMessage.textContent =
-                    "⚠️ " +
-                    error.message;
+                    errorMessage.textContent =
+                        "⚠️ " +
+                        error.message;
+
+                }
+
+
+                errorMessage.style.display =
+                    "block";
+
+
+                // ==================================
+                // FAILED STATUS
+                // ==================================
+
+                ipStatus.textContent =
+                    "Failed";
+
+                ipStatus.classList.remove(
+                    "loading"
+                );
+
+                ipStatus.classList.add(
+                    "failed"
+                );
+
+
+                accountStatus.textContent =
+                    "Failed";
+
+                accountStatus.classList.remove(
+                    "loading"
+                );
+
+                accountStatus.classList.add(
+                    "failed"
+                );
+
+
+                verificationPassed =
+                    false;
 
             }
 
 
-            errorMessage.style.display =
-                "block";
-
-
             // ==================================
-            // FAILED STATUS
+            // 🔙 RETURN TO BOT
             // ==================================
 
-            ipStatus.textContent =
-                "Failed";
+            function returnToBot() {
 
-            ipStatus.classList.remove(
-                "loading"
-            );
+                // ==================================
+                // NOT VERIFIED
+                // ==================================
 
-            ipStatus.classList.add(
-                "failed"
-            );
+                if (!verificationPassed) {
 
+                    const errorMessage =
+                        document.getElementById(
+                            "errorMessage"
+                        );
 
-            accountStatus.textContent =
-                "Failed";
+                    errorMessage.textContent =
+                        "🚫 Verification failed. You cannot return to the bot.";
 
-            accountStatus.classList.remove(
-                "loading"
-            );
+                    errorMessage.style.display =
+                        "block";
 
-            accountStatus.classList.add(
-                "failed"
-            );
-
-
-            verificationPassed =
-                false;
-
-        }
-
-    }
+                    return;
+                }
 
 
-    // ==================================
-    // 🔙 RETURN TO BOT
-    // ==================================
+                // ==================================
+                // TOKEN MISSING
+                // ==================================
 
-    function returnToBot() {
+                if (!verificationToken) {
 
-        // ==================================
-        // NOT VERIFIED
-        // ==================================
+                    const errorMessage =
+                        document.getElementById(
+                            "errorMessage"
+                        );
 
-        if (!verificationPassed) {
+                    errorMessage.textContent =
+                        "⚠️ Verification token missing.";
 
-            const errorMessage =
-                document.getElementById(
-                    "errorMessage"
-                );
+                    errorMessage.style.display =
+                        "block";
 
-            errorMessage.textContent =
-                "🚫 Verification failed. You cannot return to the Main Menu.";
-
-            errorMessage.style.display =
-                "block";
-
-            return;
-        }
+                    return;
+                }
 
 
-        // ==================================
-        // VERIFIED
-        // ==================================
+                // ==================================
+                // OPEN BOT
+                // ==================================
 
-        const botLink =
-            BOT_URL +
-            "?start=already_verified";
+                const botLink =
+                    BOT_URL +
+                    "?start=verification_complete_" +
+                    verificationToken;
 
 
-        if (
-            window.Telegram &&
-            window.Telegram.WebApp
-        ) {
+                if (
+                    window.Telegram &&
+                    window.Telegram.WebApp
+                ) {
 
-            tg.openTelegramLink(
-                botLink
-            );
+                    tg.openTelegramLink(
+                        botLink
+                    );
 
-            setTimeout(
-                () => {
-                    tg.close();
-                },
-                300
-            );
+                    setTimeout(
+                        () => {
 
-        } else {
+                            tg.close();
 
-            window.location.href =
-                botLink;
+                        },
+                        500
+                    );
 
-        }
+                } else {
 
-    }
+                    window.location.href =
+                        botLink;
+
+                }
+
+            }
 
     // ==================================
     // 🚀 START
