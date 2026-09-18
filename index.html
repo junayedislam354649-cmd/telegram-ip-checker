@@ -335,118 +335,104 @@
                 "?user_id=" +
                 encodeURIComponent(
                     tgUser || ""
-                );
-
-            console.log(
-                "API URL:",
-                apiUrl
-            );
-
-            const controller =
-                new AbortController();
-
-            const timeout =
-                setTimeout(
-                    () => controller.abort(),
-                    10000
-                );
-
-            console.log("🚀 FETCH STARTED");
-
-            let response;
+                ) +
+                "&t=" +
+                Date.now();
 
             try {
 
-                response =
-                    await fetch(
-                        apiUrl,
-                        {
-                            method: "GET",
-                            mode: "cors",
-                            cache: "no-store",
-                            signal: controller.signal
-                        }
-                    );
+                // ==================================
+                // ⏱️ 8 SECOND TIMEOUT
+                // ==================================
 
-             console.log("✅ FETCH FINISHED");
+                const response =
+                    await Promise.race([
 
-            } catch (error) {
+                        fetch(
+                            apiUrl,
+                            {
+                                method: "GET",
+                                mode: "cors",
+                                cache: "no-store"
+                            }
+                        ),
 
-                console.error(
-                    "FETCH ERROR:",
-                    error
+                        new Promise(
+                            (_, reject) =>
+                                setTimeout(
+                                    () =>
+                                        reject(
+                                            new Error(
+                                                "Request timeout after 8 seconds"
+                                            )
+                                        ),
+                                    8000
+                                )
+                        )
+
+                    ]);
+
+                // ==================================
+                // 📥 READ RESPONSE
+                // ==================================
+
+                const data =
+                    await response.json();
+
+                // ==================================
+                // DEBUG
+                // ==================================
+
+                console.log(
+                    "API STATUS:",
+                    response.status
                 );
 
-                errorMessage.textContent =
-                    "FETCH ERROR: " +
-                    error.message;
+                console.log(
+                    "API DATA:",
+                    data
+                );
 
-                errorMessage.style.display =
-                    "block";
+                // ==================================
+                // ❌ API ERROR
+                // ==================================
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "API returned HTTP " +
+                        response.status
+                    );
+
+                }
+
+                if (!data.success) {
+
+                    throw new Error(
+                        "Verification failed"
+                    );
+
+                }
+
+                // ==================================
+                // ✅ IP CHECKED
+                // ==================================
+
+                await sleep(500);
 
                 ipStatus.textContent =
-                    "Failed";
+                    "IP checked";
 
                 ipStatus.classList.remove(
                     "loading"
                 );
 
                 ipStatus.classList.add(
-                    "failed"
+                    "success"
                 );
 
-                return;
-
-            } finally {
-
-                clearTimeout(timeout);
-
-            }
-
-            console.log(
-                "API STATUS:",
-                response.status
-            );
-
-            const data =
-                await response.json();
-
-            console.log(
-                "API DATA:",
-                data
-            );
-
-            if (!response.ok) {
-
-                throw new Error(
-                    "API request failed"
-                );
-
-            }
-
-            if (!data.success) {
-
-                throw new Error(
-                    "Verification failed"
-                );
-
-            }
-
-            await sleep(500);
-
-            ipStatus.textContent =
-                "IP checked";
-
-            ipStatus.classList.remove(
-                "loading"
-            );
-
-            ipStatus.classList.add(
-                "success"
-            );
-
-            await sleep(700);
-
+                await sleep(700);
+                
             // ==================================
             // 🚫 DIFFERENT TELEGRAM + SAME IP
             // ==================================
