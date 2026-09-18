@@ -313,12 +313,23 @@
                 "loading"
             );
 
+            console.log("Telegram User ID:", tgUser);
+            console.log(
+                "API URL:", 
+                API_URL + "?user_id=" + encodeURIComponent(tgUser || "")
+            );
+
             const response =
                 await fetch(
                     API_URL +
                     "?user_id=" +
                     encodeURIComponent(tgUser || "")
                 );
+
+            console.log(
+                "API Response Status:", 
+                response.status
+            );
 
             if (!response.ok) {
 
