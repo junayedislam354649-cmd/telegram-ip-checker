@@ -269,6 +269,8 @@
     const BOT_URL =
         "https://t.me/Starfreearn_bot";
 
+    let verificationPassed = false;
+
     function sleep(ms) {
         return new Promise(
             resolve => setTimeout(resolve, ms)
@@ -394,7 +396,13 @@
                 errorMessage.style.display =
                     "block";
 
+                verificationPassed = true;
+
                 await sleep(1500);
+
+                const botLink =
+                    BOT_URL +
+                    "?start=already_verified";
 
                 // ==================================
                 // OPEN BOT
@@ -433,6 +441,8 @@
             accountStatus.classList.add(
                 "success"
             );
+
+            verificationPassed = true;
 
             await sleep(1000);
 
@@ -498,16 +508,43 @@
 
     function returnToBot() {
 
+        // ==================================
+        // ❌ VERIFICATION NOT PASSED
+        // ==================================
+
+        if (!verificationPassed) {
+
+            errorMessage.textContent =
+                "🚫 Verification failed. You cannot return to the Main Menu.";
+
+            errorMessage.style.display =
+                "block";
+
+            return;
+        }
+
+
+        // ==================================
+        // ✅ VERIFIED USER
+        // ==================================
+
+        const botLink =
+            BOT_URL +
+            "?start=already_verified";
+
         if (
             window.Telegram &&
             window.Telegram.WebApp
         ) {
 
-            tg.close();
+            tg.openTelegramLink(
+                botLink
+            );
 
         } else {
 
-            history.back();
+            window.location.href =
+                botLink;
 
         }
     }
