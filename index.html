@@ -248,56 +248,95 @@
 
 <script>
 
+    // ==================================
+    // TELEGRAM WEB APP
+    // ==================================
+
     const tg =
         window.Telegram.WebApp;
 
     tg.ready();
     tg.expand();
 
+
+    // ==================================
+    // API CONFIG
+    // ==================================
+
     const API_URL =
         "https://checker.junayedislam354649.workers.dev/api/check";
-
-    const tgUser =
-    tg.initDataUnsafe &&
-    tg.initDataUnsafe.user
-        ? tg.initDataUnsafe.user.id
-        : null;
-
-    const VERIFY_API =
-        "https://checker.junayedislam354649.workers.dev/api/verify";
 
     const BOT_URL =
         "https://t.me/Starfreearn_bot";
 
+
+    // ==================================
+    // TELEGRAM USER ID
+    // ==================================
+
+    const tgUser =
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user
+            ? tg.initDataUnsafe.user.id
+            : null;
+
+
+    // ==================================
+    // VERIFICATION STATE
+    // ==================================
+
     let verificationPassed = false;
 
+
+    // ==================================
+    // SLEEP
+    // ==================================
+
     function sleep(ms) {
+
         return new Promise(
-            resolve => setTimeout(resolve, ms)
+            resolve =>
+                setTimeout(
+                    resolve,
+                    ms
+                )
         );
+
     }
+
+
+    // ==================================
+    // START VERIFICATION
+    // ==================================
 
     async function startVerification() {
 
-        console.log("=== VERIFICATION START ===");
-        console.log("Telegram object:", window.Telegram);
-        console.log("WebApp object:", window.Telegram?.WebApp);
-        console.log("Telegram User:", tgUser);
-        console.log("API URL:", API_URL);
-
         const systemStatus =
-            document.getElementById("systemStatus");
+            document.getElementById(
+                "systemStatus"
+            );
 
         const ipStatus =
-            document.getElementById("ipStatus");
+            document.getElementById(
+                "ipStatus"
+            );
 
         const accountStatus =
-            document.getElementById("accountStatus");
+            document.getElementById(
+                "accountStatus"
+            );
 
         const errorMessage =
-            document.getElementById("errorMessage");
+            document.getElementById(
+                "errorMessage"
+            );
+
 
         try {
+
+            // ==================================
+            // SYSTEM LOADING
+            // ==================================
 
             await sleep(800);
 
@@ -312,15 +351,9 @@
                 "success"
             );
 
-            ipStatus.textContent =
-                "Checking...";
-
-            ipStatus.classList.add(
-                "loading"
-            );
 
             // ==================================
-            // 🌐 CHECK IP
+            // CHECK IP
             // ==================================
 
             ipStatus.textContent =
@@ -329,6 +362,7 @@
             ipStatus.classList.add(
                 "loading"
             );
+
 
             const apiUrl =
                 API_URL +
@@ -339,108 +373,115 @@
                 "&t=" +
                 Date.now();
 
+
+            // ==================================
+            // API REQUEST
+            // ==================================
+
+            const controller =
+                new AbortController();
+
+            const timeout =
+                setTimeout(
+                    () => {
+                        controller.abort();
+                    },
+                    10000
+                );
+
+
+            let response;
+
+
             try {
 
-                // ==================================
-                // ⏱️ 8 SECOND TIMEOUT
-                // ==================================
+                response =
+                    await fetch(
+                        apiUrl,
+                        {
+                            method: "GET",
+                            mode: "cors",
+                            cache: "no-store",
+                            signal:
+                                controller.signal
+                        }
+                    );
 
-                const response =
-                    await Promise.race([
+            } finally {
 
-                        fetch(
-                            apiUrl,
-                            {
-                                method: "GET",
-                                mode: "cors",
-                                cache: "no-store"
-                            }
-                        ),
+                clearTimeout(
+                    timeout
+                );
 
-                        new Promise(
-                            (_, reject) =>
-                                setTimeout(
-                                    () =>
-                                        reject(
-                                            new Error(
-                                                "Request timeout after 8 seconds"
-                                            )
-                                        ),
-                                    8000
-                                )
-                        )
+            }
 
-                    ]);
 
-                // ==================================
-                // 📥 READ RESPONSE
-                // ==================================
+            // ==================================
+            // RESPONSE
+            // ==================================
 
-                const data =
-                    await response.json();
+            if (!response.ok) {
 
-                // ==================================
-                // DEBUG
-                // ==================================
-
-                console.log(
-                    "API STATUS:",
+                throw new Error(
+                    "API returned HTTP " +
                     response.status
                 );
 
-                console.log(
-                    "API DATA:",
-                    data
-                );
+            }
 
-                // ==================================
-                // ❌ API ERROR
-                // ==================================
 
-                if (!response.ok) {
+            const data =
+                await response.json();
 
-                    throw new Error(
-                        "API returned HTTP " +
-                        response.status
-                    );
 
-                }
-
-                if (!data.success) {
-
-                    throw new Error(
-                        "Verification failed"
-                    );
-
-                }
-
-                // ==================================
-                // ✅ IP CHECKED
-                // ==================================
-
-                await sleep(500);
-
-                ipStatus.textContent =
-                    "IP checked";
-
-                ipStatus.classList.remove(
-                    "loading"
-                );
-
-                ipStatus.classList.add(
-                    "success"
-                );
-
-                await sleep(700);
-                
             // ==================================
-            // 🚫 DIFFERENT TELEGRAM + SAME IP
+            // CHECK API SUCCESS
             // ==================================
 
-            if (data.banned === true) {
+            if (!data.success) {
+
+                throw new Error(
+                    "Verification failed"
+                );
+
+            }
+
+
+            // ==================================
+            // IP CHECKED
+            // ==================================
+
+            await sleep(500);
+
+            ipStatus.textContent =
+                "IP checked";
+
+            ipStatus.classList.remove(
+                "loading"
+            );
+
+            ipStatus.classList.add(
+                "success"
+            );
+
+
+            await sleep(700);
+
+
+            // ==================================
+            // 🚫 BANNED
+            // ==================================
+
+            if (
+                data.banned === true
+            ) {
 
                 accountStatus.textContent =
                     "IP detected";
+
+                accountStatus.classList.remove(
+                    "loading"
+                );
 
                 accountStatus.classList.add(
                     "failed"
@@ -452,22 +493,35 @@
                 errorMessage.style.display =
                     "block";
 
+
+                verificationPassed =
+                    false;
+
+
                 return;
+
             }
 
 
             // ==================================
-            // ✅ SAME TELEGRAM ALREADY VERIFIED
+            // ✅ ALREADY VERIFIED
             // ==================================
 
-            if (data.already_verified === true) {
+            if (
+                data.already_verified === true
+            ) {
 
                 accountStatus.textContent =
                     "Already verified";
 
+                accountStatus.classList.remove(
+                    "loading"
+                );
+
                 accountStatus.classList.add(
                     "success"
                 );
+
 
                 errorMessage.textContent =
                     "✅ You are already verified.";
@@ -475,13 +529,13 @@
                 errorMessage.style.display =
                     "block";
 
-                verificationPassed = true;
+
+                verificationPassed =
+                    true;
+
 
                 await sleep(1500);
 
-                const botLink =
-                    BOT_URL +
-                    "?start=already_verified";
 
                 // ==================================
                 // OPEN BOT
@@ -490,6 +544,7 @@
                 const botLink =
                     BOT_URL +
                     "?start=already_verified";
+
 
                 if (
                     window.Telegram &&
@@ -507,23 +562,34 @@
 
                 }
 
+
                 return;
+
             }
 
+
             // ==================================
-            // NEW IP
+            // 🆕 NEW USER / NEW IP
             // ==================================
 
             accountStatus.textContent =
                 "Multiple not detected";
 
+            accountStatus.classList.remove(
+                "loading"
+            );
+
             accountStatus.classList.add(
                 "success"
             );
 
-            verificationPassed = true;
+
+            verificationPassed =
+                true;
+
 
             await sleep(1000);
+
 
             // ==================================
             // OPEN BOT WITH TOKEN
@@ -536,6 +602,7 @@
                     "?start=verified_" +
                     data.token;
 
+
                 if (
                     window.Telegram &&
                     window.Telegram.WebApp
@@ -552,18 +619,57 @@
 
                 }
 
+
                 return;
+
             }
+
+
+            // ==================================
+            // TOKEN MISSING
+            // ==================================
+
+            throw new Error(
+                "Verification token missing"
+            );
+
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "Verification error:",
+                error
+            );
 
-            errorMessage.textContent =
-                "Verification failed. Please try again.";
+
+            // ==================================
+            // ERROR MESSAGE
+            // ==================================
+
+            if (
+                error.name ===
+                "AbortError"
+            ) {
+
+                errorMessage.textContent =
+                    "⚠️ Verification server timeout. Please try again.";
+
+            } else {
+
+                errorMessage.textContent =
+                    "⚠️ " +
+                    error.message;
+
+            }
+
 
             errorMessage.style.display =
                 "block";
+
+
+            // ==================================
+            // FAILED STATUS
+            // ==================================
 
             ipStatus.textContent =
                 "Failed";
@@ -576,22 +682,46 @@
                 "failed"
             );
 
+
             accountStatus.textContent =
                 "Failed";
+
+            accountStatus.classList.remove(
+                "loading"
+            );
 
             accountStatus.classList.add(
                 "failed"
             );
+
+
+            verificationPassed =
+                false;
+
         }
+
     }
+
+
+    // ==================================
+    // 🔙 RETURN TO BOT
+    // ==================================
 
     function returnToBot() {
 
         // ==================================
-        // ❌ VERIFICATION NOT PASSED
+        // NOT VERIFIED
         // ==================================
 
-        if (!verificationPassed) {
+        if (
+            !verificationPassed
+        ) {
+
+            const errorMessage =
+                document.getElementById(
+                    "errorMessage"
+                );
+
 
             errorMessage.textContent =
                 "🚫 Verification failed. You cannot return to the Main Menu.";
@@ -599,17 +729,20 @@
             errorMessage.style.display =
                 "block";
 
+
             return;
+
         }
 
 
         // ==================================
-        // ✅ VERIFIED USER
+        // VERIFIED
         // ==================================
 
         const botLink =
             BOT_URL +
             "?start=already_verified";
+
 
         if (
             window.Telegram &&
@@ -626,11 +759,18 @@
                 botLink;
 
         }
+
     }
+
+
+    // ==================================
+    // 🚀 START
+    // ==================================
 
     startVerification();
 
 </script>
+
 
 </body>
 </html>
