@@ -3,44 +3,43 @@ export default {
 
     const url = new URL(request.url);
 
-    // ==========================================
-    // CORS
-    // ==========================================
-
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "*"
     };
 
-    if (request.method === "OPTIONS") {
 
+    // =====================================================
+    // 🌐 CORS
+    // =====================================================
+
+    if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: corsHeaders
       });
-
     }
 
 
-    // ==========================================
-    // IP CHECK
-    // ==========================================
+    // =====================================================
+    // 🔍 GET USER IP
+    // =====================================================
+
+    const ip =
+      request.headers.get("CF-Connecting-IP") ||
+      request.headers.get("X-Forwarded-For") ||
+      "unknown";
+
+
+    // =====================================================
+    // 🔐 API CHECK
+    // =====================================================
 
     if (url.pathname === "/api/check") {
-
-      const ip =
-        request.headers.get("CF-Connecting-IP") ||
-        request.headers.get("X-Forwarded-For") ||
-        "unknown";
-
 
       const userId =
         url.searchParams.get("user_id");
 
-
-      // ========================================
-      // TELEGRAM USER ID REQUIRED
-      // ========================================
 
       if (!userId) {
 
@@ -57,13 +56,12 @@ export default {
             }
           }
         );
-
       }
 
 
-      // ========================================
-      // 🚫 CHECK PERMANENT TELEGRAM BAN
-      // ========================================
+      // =================================================
+      // 🚫 CHECK PERMANENT BAN
+      // =================================================
 
       const bannedUser =
         await env.IP_DATABASE.get(
@@ -90,13 +88,12 @@ export default {
             }
           }
         );
-
       }
 
 
-      // ========================================
-      // CHECK THIS TELEGRAM USER
-      // ========================================
+      // =================================================
+      // 👤 CHECK EXISTING USER
+      // =================================================
 
       const userRecord =
         await env.IP_DATABASE.get(
@@ -104,19 +101,11 @@ export default {
         );
 
 
-      // ========================================
-      // SAME TELEGRAM USER ALREADY VERIFIED
-      // ========================================
-
       if (userRecord) {
 
         const savedUser =
           JSON.parse(userRecord);
 
-
-        // --------------------------------------
-        // SAME TELEGRAM + SAME IP
-        // --------------------------------------
 
         if (savedUser.ip === ip) {
 
@@ -135,13 +124,8 @@ export default {
               }
             }
           );
-
         }
 
-
-        // --------------------------------------
-        // SAME TELEGRAM + DIFFERENT IP
-        // --------------------------------------
 
         return new Response(
           JSON.stringify({
@@ -158,13 +142,12 @@ export default {
             }
           }
         );
-
       }
 
 
-      // ========================================
-      // CHECK WHETHER IP BELONGS TO ANOTHER USER
-      // ========================================
+      // =================================================
+      // 🌐 CHECK IP DATABASE
+      // =================================================
 
       const ipRecord =
         await env.IP_DATABASE.get(
@@ -178,19 +161,15 @@ export default {
           JSON.parse(ipRecord);
 
 
-        // ======================================
-        // DIFFERENT TELEGRAM + SAME IP
-        // ======================================
-
         if (
           String(savedIP.user_id) !==
           String(userId)
         ) {
 
 
-          // ====================================
-          // 🚫 PERMANENTLY BAN TELEGRAM USER
-          // ====================================
+          // =============================================
+          // 🚫 PERMANENT BAN NEW USER
+          // =============================================
 
           await env.IP_DATABASE.put(
             "banned:" + userId,
@@ -203,10 +182,6 @@ export default {
             })
           );
 
-
-          // ====================================
-          // RETURN BAN RESULT
-          // ====================================
 
           return new Response(
             JSON.stringify({
@@ -225,15 +200,13 @@ export default {
               }
             }
           );
-
         }
-
       }
 
 
-      // ========================================
-      // NEW USER + NEW IP
-      // ========================================
+      // =================================================
+      // 💾 SAVE USER
+      // =================================================
 
       await env.IP_DATABASE.put(
         "user:" + userId,
@@ -245,6 +218,10 @@ export default {
       );
 
 
+      // =================================================
+      // 💾 SAVE IP
+      // =================================================
+
       await env.IP_DATABASE.put(
         "ip:" + ip,
         JSON.stringify({
@@ -254,9 +231,9 @@ export default {
       );
 
 
-      // ========================================
-      // CREATE VERIFICATION TOKEN
-      // ========================================
+      // =================================================
+      // 🎟️ CREATE VERIFICATION TOKEN
+      // =================================================
 
       const token =
         crypto.randomUUID();
@@ -275,9 +252,9 @@ export default {
       );
 
 
-      // ========================================
-      // RETURN NEW VERIFICATION
-      // ========================================
+      // =================================================
+      // ✅ NEW VERIFICATION
+      // =================================================
 
       return new Response(
         JSON.stringify({
@@ -295,23 +272,88 @@ export default {
           }
         }
       );
-
     }
 
 
-    // ==========================================
-    // VERIFY TOKEN
-    // ==========================================
+    // =====================================================
+    // 🚫 SAFE BAN CHECK
+    // =====================================================
+
+    if (url.pathname === "/api/ban-check") {
+
+      const userId =
+        url.searchParams.get("user_id");
+
+
+      if (!userId) {
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Telegram user ID missing"
+          }),
+          {
+            status: 400,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+
+
+      const bannedUser =
+        await env.IP_DATABASE.get(
+          "banned:" + userId
+        );
+
+
+      if (bannedUser) {
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            banned: true,
+            permanent: true
+          }),
+          {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      }
+
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          banned: false,
+          permanent: false
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+
+    // =====================================================
+    // 🎟️ VERIFY TOKEN
+    // =====================================================
 
     if (url.pathname === "/api/verify") {
 
       const token =
         url.searchParams.get("token");
 
-
-      // ========================================
-      // TOKEN REQUIRED
-      // ========================================
 
       if (!token) {
 
@@ -328,23 +370,14 @@ export default {
             }
           }
         );
-
       }
 
-
-      // ========================================
-      // GET TOKEN DATA
-      // ========================================
 
       const data =
         await env.IP_DATABASE.get(
           "verify:" + token
         );
 
-
-      // ========================================
-      // INVALID / EXPIRED TOKEN
-      // ========================================
 
       if (!data) {
 
@@ -362,22 +395,17 @@ export default {
             }
           }
         );
-
       }
 
 
-      // ========================================
-      // ONE-TIME TOKEN
-      // ========================================
+      // ================================================
+      // 🗑️ ONE-TIME TOKEN
+      // ================================================
 
       await env.IP_DATABASE.delete(
         "verify:" + token
       );
 
-
-      // ========================================
-      // VERIFICATION SUCCESS
-      // ========================================
 
       return new Response(
         JSON.stringify({
@@ -391,122 +419,34 @@ export default {
           }
         }
       );
-
     }
 
 
-    // ==========================================
-    // API HOME
-    // ==========================================
+    // =====================================================
+    // 🌐 DEFAULT RESPONSE
+    // =====================================================
 
     return new Response(
-      `
-      <!DOCTYPE html>
+      `<!DOCTYPE html>
       <html>
-
       <head>
-
-        <meta charset="UTF-8">
-
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0"
-        >
-
-        <title>IP Checker API</title>
-
-        <style>
-
-          body {
-
-            background: #0b0f14;
-
-            color: white;
-
-            font-family: Arial, sans-serif;
-
-            text-align: center;
-
-            padding-top: 80px;
-
-          }
-
-
-          .box {
-
-            max-width: 500px;
-
-            margin: auto;
-
-            padding: 30px;
-
-          }
-
-
-          h1 {
-
-            font-size: 28px;
-
-          }
-
-
-          p {
-
-            color: #9aa4b2;
-
-          }
-
-
-          a {
-
-            color: #5ca9ff;
-
-            text-decoration: none;
-
-            font-weight: bold;
-
-          }
-
-        </style>
-
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>IP Verification API</title>
       </head>
-
 
       <body>
 
-        <div class="box">
+        <h1>IP Verification API</h1>
 
-          <h1>🚀 IP Checker API</h1>
+        <p>API is running successfully.</p>
 
-
-          <p>
-            API is running successfully.
-          </p>
-
-
-          <p>
-
-            This API made by
-
-            <a
-              href="https://t.me/CallJunaeid"
-              target="_blank"
-            >
-              @CallJunaeid
-            </a>
-
-          </p>
-
-        </div>
+        <p>This API made by @CallJunaeid</p>
 
       </body>
-
-      </html>
-      `,
+      </html>`,
       {
         headers: {
-          "Content-Type":
-            "text/html; charset=UTF-8"
+          "Content-Type": "text/html; charset=UTF-8"
         }
       }
     );
