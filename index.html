@@ -710,27 +710,23 @@
 
 
             // ==================================
-            // HTTP STATUS
+            // JSON RESPONSE
             // ==================================
 
-            if (!response.ok) {
+            let data;
+
+            try {
+
+                data = await response.json();
+
+            }
+            catch (jsonError) {
 
                 throw new Error(
-                    "API returned HTTP " +
-                    response.status
+                    "Invalid response from verification server."
                 );
 
             }
-
-
-
-            // ==================================
-            // JSON
-            // ==================================
-
-            const data =
-                await response.json();
-
 
 
             console.log(
@@ -738,6 +734,70 @@
                 data
             );
 
+
+            // ==================================
+            // 🚫 PERMANENT BAN
+            // ==================================
+
+            if (
+                data.banned === true
+            ) {
+
+                ipStatus.textContent =
+                    "IP detected";
+
+                ipStatus.classList.remove(
+                    "loading"
+                );
+
+                ipStatus.classList.add(
+                    "failed"
+                );
+
+
+                accountStatus.textContent =
+                    "Banned";
+
+                accountStatus.classList.remove(
+                    "loading"
+                );
+
+                accountStatus.classList.add(
+                    "failed"
+                );
+
+
+                errorMessage.textContent =
+                    "🚫 Multiple account detected. Your account is permanently banned.";
+
+                errorMessage.style.display =
+                    "block";
+
+
+                verificationPassed =
+                    false;
+
+                verificationToken =
+                    null;
+
+
+                return;
+            }
+
+
+            // ==================================
+            // HTTP STATUS
+            // ==================================
+            
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "API returned HTTP " +
+                    response.status
+                );
+
+            }
 
 
             // ==================================
@@ -756,7 +816,6 @@
                 );
 
             }
-
 
 
             // ==================================
