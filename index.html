@@ -1014,12 +1014,8 @@
 
     function returnToBot() {
 
-
         const errorMessage =
-            document.getElementById(
-                "errorMessage"
-            );
-
+            document.getElementById("errorMessage");
 
 
         // ==================================
@@ -1028,44 +1024,79 @@
 
         if (!verificationPassed) {
 
-
             errorMessage.textContent =
                 "🚫 Verification failed. You cannot return to the bot.";
-
 
             errorMessage.style.display =
                 "block";
 
-
             return;
-
         }
 
 
+        // ==================================
+        // ALREADY VERIFIED
+        // ==================================
+
+        if (
+            verificationPassed === true &&
+            !verificationToken
+        ) {
+
+            console.log(
+                "User already verified. Returning to bot..."
+            );
+
+
+            // Open bot normally
+            if (
+                window.Telegram &&
+                window.Telegram.WebApp
+            ) {
+
+                tg.openTelegramLink(
+                    BOT_URL
+                );
+
+
+                // Close Mini App
+                setTimeout(function () {
+
+                    tg.close();
+
+                }, 300);
+
+            }
+
+            else {
+
+                window.location.href =
+                    BOT_URL;
+
+            }
+
+            return;
+        }
+
 
         // ==================================
-        // TOKEN MISSING
+        // NEW VERIFICATION TOKEN
         // ==================================
 
         if (!verificationToken) {
 
-
             errorMessage.textContent =
                 "⚠️ Verification token missing. Please restart verification.";
-
 
             errorMessage.style.display =
                 "block";
 
-
             return;
-
         }
 
 
-
         // ==================================
-        // BOT LINK
+        // BOT LINK WITH TOKEN
         // ==================================
 
         const botLink =
@@ -1076,12 +1107,10 @@
             );
 
 
-
         console.log(
             "Opening bot:",
             botLink
         );
-
 
 
         // ==================================
@@ -1089,22 +1118,25 @@
         // ==================================
 
         if (
-
             window.Telegram &&
             window.Telegram.WebApp
-
         ) {
-
 
             tg.openTelegramLink(
                 botLink
             );
 
 
+            // Close Mini App
+            setTimeout(function () {
+
+                tg.close();
+
+            }, 300);
+
         }
 
         else {
-
 
             window.location.href =
                 botLink;
