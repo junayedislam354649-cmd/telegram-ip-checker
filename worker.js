@@ -14,10 +14,13 @@ export default {
     };
 
     if (request.method === "OPTIONS") {
+
       return new Response(null, {
         headers: corsHeaders
       });
+
     }
+
 
     // ==========================================
     // IP CHECK
@@ -30,8 +33,10 @@ export default {
         request.headers.get("X-Forwarded-For") ||
         "unknown";
 
+
       const userId =
         url.searchParams.get("user_id");
+
 
       // ========================================
       // TELEGRAM USER ID REQUIRED
@@ -52,7 +57,42 @@ export default {
             }
           }
         );
+
       }
+
+
+      // ========================================
+      // 🚫 CHECK PERMANENT TELEGRAM BAN
+      // ========================================
+
+      const bannedUser =
+        await env.IP_DATABASE.get(
+          "banned:" + userId
+        );
+
+
+      if (bannedUser) {
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            status: "banned",
+            ip: ip,
+            multiple: false,
+            banned: true,
+            permanent: true
+          }),
+          {
+            status: 403,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+
+      }
+
 
       // ========================================
       // CHECK THIS TELEGRAM USER
@@ -63,6 +103,7 @@ export default {
           "user:" + userId
         );
 
+
       // ========================================
       // SAME TELEGRAM USER ALREADY VERIFIED
       // ========================================
@@ -72,7 +113,11 @@ export default {
         const savedUser =
           JSON.parse(userRecord);
 
-        // Same Telegram + same IP
+
+        // --------------------------------------
+        // SAME TELEGRAM + SAME IP
+        // --------------------------------------
+
         if (savedUser.ip === ip) {
 
           return new Response(
@@ -93,8 +138,11 @@ export default {
 
         }
 
-        // Same Telegram but different IP
-        // Treat as already verified
+
+        // --------------------------------------
+        // SAME TELEGRAM + DIFFERENT IP
+        // --------------------------------------
+
         return new Response(
           JSON.stringify({
             success: true,
@@ -110,7 +158,9 @@ export default {
             }
           }
         );
+
       }
+
 
       // ========================================
       // CHECK WHETHER IP BELONGS TO ANOTHER USER
@@ -121,10 +171,12 @@ export default {
           "ip:" + ip
         );
 
+
       if (ipRecord) {
 
         const savedIP =
           JSON.parse(ipRecord);
+
 
         // ======================================
         // DIFFERENT TELEGRAM + SAME IP
@@ -135,15 +187,38 @@ export default {
           String(userId)
         ) {
 
+
+          // ====================================
+          // 🚫 PERMANENTLY BAN TELEGRAM USER
+          // ====================================
+
+          await env.IP_DATABASE.put(
+            "banned:" + userId,
+            JSON.stringify({
+              user_id: userId,
+              detected_ip: ip,
+              original_user_id: savedIP.user_id,
+              banned_at: new Date().toISOString(),
+              reason: "Multiple account detected"
+            })
+          );
+
+
+          // ====================================
+          // RETURN BAN RESULT
+          // ====================================
+
           return new Response(
             JSON.stringify({
               success: true,
               status: "banned",
               ip: ip,
               multiple: true,
-              banned: true
+              banned: true,
+              permanent: true
             }),
             {
+              status: 403,
               headers: {
                 ...corsHeaders,
                 "Content-Type": "application/json"
@@ -152,7 +227,9 @@ export default {
           );
 
         }
+
       }
+
 
       // ========================================
       // NEW USER + NEW IP
@@ -167,6 +244,7 @@ export default {
         })
       );
 
+
       await env.IP_DATABASE.put(
         "ip:" + ip,
         JSON.stringify({
@@ -175,12 +253,14 @@ export default {
         })
       );
 
+
       // ========================================
       // CREATE VERIFICATION TOKEN
       // ========================================
 
       const token =
         crypto.randomUUID();
+
 
       await env.IP_DATABASE.put(
         "verify:" + token,
@@ -193,6 +273,11 @@ export default {
           expirationTtl: 600
         }
       );
+
+
+      // ========================================
+      // RETURN NEW VERIFICATION
+      // ========================================
 
       return new Response(
         JSON.stringify({
@@ -210,7 +295,9 @@ export default {
           }
         }
       );
+
     }
+
 
     // ==========================================
     // VERIFY TOKEN
@@ -220,6 +307,11 @@ export default {
 
       const token =
         url.searchParams.get("token");
+
+
+      // ========================================
+      // TOKEN REQUIRED
+      // ========================================
 
       if (!token) {
 
@@ -236,12 +328,23 @@ export default {
             }
           }
         );
+
       }
+
+
+      // ========================================
+      // GET TOKEN DATA
+      // ========================================
 
       const data =
         await env.IP_DATABASE.get(
           "verify:" + token
         );
+
+
+      // ========================================
+      // INVALID / EXPIRED TOKEN
+      // ========================================
 
       if (!data) {
 
@@ -259,12 +362,22 @@ export default {
             }
           }
         );
+
       }
 
-      // One-time token
+
+      // ========================================
+      // ONE-TIME TOKEN
+      // ========================================
+
       await env.IP_DATABASE.delete(
         "verify:" + token
       );
+
+
+      // ========================================
+      // VERIFICATION SUCCESS
+      // ========================================
 
       return new Response(
         JSON.stringify({
@@ -278,7 +391,9 @@ export default {
           }
         }
       );
+
     }
+
 
     // ==========================================
     // API HOME
@@ -290,41 +405,72 @@ export default {
       <html>
 
       <head>
+
+        <meta charset="UTF-8">
+
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0"
+        >
+
         <title>IP Checker API</title>
 
         <style>
 
           body {
+
             background: #0b0f14;
+
             color: white;
+
             font-family: Arial, sans-serif;
+
             text-align: center;
+
             padding-top: 80px;
+
           }
+
 
           .box {
+
             max-width: 500px;
+
             margin: auto;
+
             padding: 30px;
+
           }
+
 
           h1 {
+
             font-size: 28px;
+
           }
+
 
           p {
+
             color: #9aa4b2;
+
           }
 
+
           a {
+
             color: #5ca9ff;
+
             text-decoration: none;
+
             font-weight: bold;
+
           }
 
         </style>
 
       </head>
+
 
       <body>
 
@@ -332,18 +478,23 @@ export default {
 
           <h1>🚀 IP Checker API</h1>
 
+
           <p>
             API is running successfully.
           </p>
 
+
           <p>
+
             This API made by
+
             <a
               href="https://t.me/CallJunaeid"
               target="_blank"
             >
               @CallJunaeid
             </a>
+
           </p>
 
         </div>
