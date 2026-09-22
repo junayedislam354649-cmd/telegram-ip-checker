@@ -278,10 +278,6 @@
 <div class="container">
 
 
-    <!-- ==================================
-         HEADER
-    ================================== -->
-
     <div class="header">
 
         <h1>
@@ -295,10 +291,6 @@
     </div>
 
 
-
-    <!-- ==================================
-         SYSTEM
-    ================================== -->
 
     <div class="status-card">
 
@@ -334,10 +326,6 @@
 
 
 
-    <!-- ==================================
-         IP
-    ================================== -->
-
     <div class="status-card">
 
         <div class="status-left">
@@ -371,10 +359,6 @@
     </div>
 
 
-
-    <!-- ==================================
-         MULTIPLE ACCOUNTS
-    ================================== -->
 
     <div class="status-card">
 
@@ -410,10 +394,6 @@
 
 
 
-    <!-- ==================================
-         ERROR / SUCCESS MESSAGE
-    ================================== -->
-
     <div
         id="errorMessage"
         class="error"
@@ -423,10 +403,6 @@
 
 
 
-    <!-- ==================================
-         RETURN BUTTON
-    ================================== -->
-
     <button
         class="return-button"
         onclick="returnToBot()"
@@ -435,10 +411,6 @@
     </button>
 
 
-
-    <!-- ==================================
-         FOOTER
-    ================================== -->
 
     <div class="footer">
 
@@ -508,12 +480,12 @@
         false;
 
 
-    // IMPORTANT:
-    // Keep token outside startVerification()
-    // so returnToBot() can access it.
-
     let verificationToken =
         null;
+
+
+    let alreadyVerified =
+        false;
 
 
 
@@ -627,10 +599,6 @@
 
 
 
-            // ==================================
-            // API URL
-            // ==================================
-
             const apiUrl =
                 API_URL +
                 "?user_id=" +
@@ -668,13 +636,7 @@
             let response;
 
 
-
             try {
-
-
-                // ==================================
-                // API REQUEST
-                // ==================================
 
                 response =
                     await fetch(
@@ -696,7 +658,6 @@
 
                     );
 
-
             }
 
             finally {
@@ -715,11 +676,14 @@
 
             let data;
 
+
             try {
 
-                data = await response.json();
+                data =
+                    await response.json();
 
             }
+
             catch (jsonError) {
 
                 throw new Error(
@@ -728,11 +692,6 @@
 
             }
 
-
-            alert(
-                "TOKEN:\n[" + data.token + "]\n\nLENGTH: " +
-                (data.token ? data.token.length : 0)
-            );
 
 
             // ==================================
@@ -746,9 +705,11 @@
                 ipStatus.textContent =
                     "IP detected";
 
+
                 ipStatus.classList.remove(
                     "loading"
                 );
+
 
                 ipStatus.classList.add(
                     "failed"
@@ -758,9 +719,11 @@
                 accountStatus.textContent =
                     "Banned";
 
+
                 accountStatus.classList.remove(
                     "loading"
                 );
+
 
                 accountStatus.classList.add(
                     "failed"
@@ -770,6 +733,7 @@
                 errorMessage.textContent =
                     "🚫 Multiple account detected. Your account is permanently banned.";
 
+
                 errorMessage.style.display =
                     "block";
 
@@ -777,27 +741,33 @@
                 verificationPassed =
                     false;
 
+
                 verificationToken =
                     null;
 
 
                 return;
+
             }
+
 
 
             // ==================================
             // HTTP STATUS
             // ==================================
-            
+
             if (!response.ok) {
 
                 throw new Error(
+
                     data.error ||
                     "API returned HTTP " +
                     response.status
+
                 );
 
             }
+
 
 
             // ==================================
@@ -816,6 +786,7 @@
                 );
 
             }
+
 
 
             // ==================================
@@ -852,7 +823,6 @@
                 data.banned === true
             ) {
 
-
                 accountStatus.textContent =
                     "IP detected";
 
@@ -879,6 +849,10 @@
                     false;
 
 
+                verificationToken =
+                    null;
+
+
                 return;
 
             }
@@ -886,25 +860,20 @@
 
 
             // ==================================
-            // 🔐 SAVE TOKEN
-            // ==================================
-
-            if (data.token) {
-
-                verificationToken =
-                    data.token;
-
-            }
-
-
-
-            // ==================================
-            // ACCOUNT STATUS
+            // 🔐 CHECK ALREADY VERIFIED
             // ==================================
 
             if (
                 data.already_verified === true
             ) {
+
+                alreadyVerified =
+                    true;
+
+
+                verificationToken =
+                    null;
+
 
                 accountStatus.textContent =
                     "Already verified";
@@ -912,6 +881,24 @@
             }
 
             else {
+
+                alreadyVerified =
+                    false;
+
+
+                // ==================================
+                // 🔐 SAVE NEW TOKEN
+                // ==================================
+
+                if (
+                    data.token
+                ) {
+
+                    verificationToken =
+                        data.token;
+
+                }
+
 
                 accountStatus.textContent =
                     "Multiple not detected";
@@ -953,31 +940,6 @@
 
 
 
-            console.log(
-                "Verification passed:",
-                verificationPassed
-            );
-
-
-            console.log(
-                "Verification token:",
-                verificationToken
-            );
-
-
-
-            // ==================================
-            // IMPORTANT
-            // ==================================
-            //
-            // DO NOT OPEN BOT HERE.
-            //
-            // User must manually press:
-            //
-            // Return to Bot
-            //
-            // ==================================
-
         }
 
 
@@ -988,7 +950,6 @@
                 "Verification error:",
                 error
             );
-
 
 
             // ==================================
@@ -1014,7 +975,6 @@
             }
 
 
-
             errorMessage.style.display =
                 "block";
 
@@ -1038,7 +998,6 @@
             );
 
 
-
             accountStatus.textContent =
                 "Failed";
 
@@ -1051,7 +1010,6 @@
             accountStatus.classList.add(
                 "failed"
             );
-
 
 
             verificationPassed =
@@ -1073,15 +1031,20 @@
 
     function returnToBot() {
 
+
         const errorMessage =
-            document.getElementById("errorMessage");
+            document.getElementById(
+                "errorMessage"
+            );
 
 
         // ==================================
         // NOT VERIFIED
         // ==================================
 
-        if (!verificationPassed) {
+        if (
+            !verificationPassed
+        ) {
 
             errorMessage.textContent =
                 "🚫 Verification failed. You cannot return to the bot.";
@@ -1090,7 +1053,9 @@
                 "block";
 
             return;
+
         }
+
 
 
         // ==================================
@@ -1098,16 +1063,14 @@
         // ==================================
 
         if (
-            verificationPassed === true &&
-            !verificationToken
+            alreadyVerified === true
         ) {
 
             console.log(
-                "User already verified. Returning to bot..."
+                "Already verified. Opening bot..."
             );
 
 
-            // Open bot normally
             if (
                 window.Telegram &&
                 window.Telegram.WebApp
@@ -1118,12 +1081,17 @@
                 );
 
 
-                // Close Mini App
-                setTimeout(function () {
+                setTimeout(
 
-                    tg.close();
+                    function () {
 
-                }, 300);
+                        tg.close();
+
+                    },
+
+                    300
+
+                );
 
             }
 
@@ -1134,15 +1102,20 @@
 
             }
 
+
             return;
+
         }
 
 
+
         // ==================================
-        // NEW VERIFICATION TOKEN
+        // TOKEN REQUIRED
         // ==================================
 
-        if (!verificationToken) {
+        if (
+            !verificationToken
+        ) {
 
             errorMessage.textContent =
                 "⚠️ Verification token missing. Please restart verification.";
@@ -1151,7 +1124,9 @@
                 "block";
 
             return;
+
         }
+
 
 
         // ==================================
@@ -1167,13 +1142,13 @@
 
 
         console.log(
-            "Opening bot:",
-            botLink
+            "Opening bot with verification token."
         );
 
 
+
         // ==================================
-        // OPEN TELEGRAM BOT
+        // OPEN BOT
         // ==================================
 
         if (
@@ -1186,12 +1161,17 @@
             );
 
 
-            // Close Mini App
-            setTimeout(function () {
+            setTimeout(
 
-                tg.close();
+                function () {
 
-            }, 300);
+                    tg.close();
+
+                },
+
+                300
+
+            );
 
         }
 
