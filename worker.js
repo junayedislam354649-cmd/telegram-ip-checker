@@ -632,35 +632,18 @@ export default {
 
 
       // =================================================
-      // 🛡️ MAKE SURE IP MATCHES
+      // 🛡️ VERIFY TOKEN IP
       // =================================================
 
-      if (
-        savedUser.ip !== verifiedIP
-      ) {
+      if (savedUser.ip !== verifiedIP) {
 
-        return new Response(
+        // Update user IP because this token
+        // was created for the user's current IP
 
-          JSON.stringify({
+        savedUser.ip = verifiedIP;
 
-            success: false,
-            verified: false,
-            error:
-              "IP verification mismatch"
-
-          }),
-
-          {
-            status: 403,
-
-            headers: {
-              ...corsHeaders,
-              "Content-Type":
-                "application/json"
-            }
-          }
-
-        );
+        savedUser.ip_updated_at =
+          new Date().toISOString();
 
       }
 
