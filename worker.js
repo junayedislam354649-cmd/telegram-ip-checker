@@ -9,7 +9,6 @@ export default {
       "Access-Control-Allow-Headers": "*"
     };
 
-
     // =====================================================
     // 🌐 CORS
     // =====================================================
@@ -22,7 +21,6 @@ export default {
 
     }
 
-
     // =====================================================
     // 🔍 GET USER IP
     // =====================================================
@@ -31,7 +29,6 @@ export default {
       request.headers.get("CF-Connecting-IP") ||
       request.headers.get("X-Forwarded-For") ||
       "unknown";
-
 
     // =====================================================
     // 🔧 CREATE VERIFICATION TOKEN
@@ -45,26 +42,20 @@ export default {
       const token =
         crypto.randomUUID();
 
-
       await env.IP_DATABASE.put(
         "verify:" + token,
-
         JSON.stringify({
           user_id: userId,
           ip: userIP,
           created_at: Date.now()
         }),
-
         {
           expirationTtl: 600
         }
       );
 
-
       return token;
-
     }
-
 
     // =====================================================
     // 🔍 API CHECK
@@ -75,7 +66,6 @@ export default {
       const userId =
         url.searchParams.get("user_id");
 
-
       if (!userId) {
 
         return new Response(
@@ -83,10 +73,8 @@ export default {
             success: false,
             error: "Telegram user ID missing"
           }),
-
           {
             status: 400,
-
             headers: {
               ...corsHeaders,
               "Content-Type": "application/json"
@@ -95,7 +83,6 @@ export default {
         );
 
       }
-
 
       // =================================================
       // 🚫 CHECK PERMANENT BAN
@@ -106,24 +93,19 @@ export default {
           "banned:" + userId
         );
 
-
       if (bannedUser) {
 
         return new Response(
           JSON.stringify({
-
             success: true,
             status: "banned",
             ip: ip,
-            multiple: false,
+            multiple: true,
             banned: true,
             permanent: true
-
           }),
-
           {
             status: 403,
-
             headers: {
               ...corsHeaders,
               "Content-Type": "application/json"
@@ -132,7 +114,6 @@ export default {
         );
 
       }
-
 
       // =================================================
       // 👤 CHECK EXISTING USER
@@ -143,15 +124,13 @@ export default {
           "user:" + userId
         );
 
-
       if (userRecord) {
 
         const savedUser =
           JSON.parse(userRecord);
 
-
         // ===============================================
-        // 🚫 USER IP CHANGED
+        // 🌐 IP CHANGED
         // ===============================================
 
         if (
@@ -159,35 +138,99 @@ export default {
           savedUser.ip !== ip
         ) {
 
+          // ---------------------------------------------
+          // 🔍 CHECK NEW IP DATABASE
+          // ---------------------------------------------
+
+          const newIPRecord =
+            await env.IP_DATABASE.get(
+              "ip:" + ip
+            );
+
+          if (newIPRecord) {
+
+            const savedIP =
+              JSON.parse(newIPRecord);
+
+            // -------------------------------------------
+            // 🚫 DIFFERENT USER ALREADY USED THIS IP
+            // -------------------------------------------
+
+            if (
+              String(savedIP.user_id) !==
+              String(userId)
+            ) {
+
+              // -----------------------------------------
+              // 💾 SAVE PERMANENT BAN
+              // -----------------------------------------
+
+              await env.IP_DATABASE.put(
+                "banned:" + userId,
+                JSON.stringify({
+                  user_id: userId,
+                  detected_ip: ip,
+                  original_user_id:
+                    savedIP.user_id,
+                  banned_at:
+                    new Date().toISOString(),
+                  reason:
+                    "Multiple account detected"
+                })
+              );
+
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  status: "banned",
+                  ip: ip,
+                  multiple: true,
+                  banned: true,
+                  permanent: true
+                }),
+                {
+                  status: 403,
+                  headers: {
+                    ...corsHeaders,
+                    "Content-Type":
+                      "application/json"
+                  }
+                }
+              );
+
+            }
+
+          }
+
+          // ---------------------------------------------
+          // 🆕 NEW IP IS NOT USED BY ANOTHER USER
+          // ---------------------------------------------
+
           const newToken =
             await createVerificationToken(
               userId,
               ip
             );
 
-
           return new Response(
             JSON.stringify({
-
               success: true,
               status: "new_verification",
               ip: ip,
               multiple: false,
               already_verified: false,
               token: newToken
-
             }),
-
             {
               headers: {
                 ...corsHeaders,
-                "Content-Type": "application/json"
+                "Content-Type":
+                  "application/json"
               }
             }
           );
 
         }
-
 
         // ===============================================
         // ✅ ALREADY VERIFIED
@@ -199,25 +242,22 @@ export default {
 
           return new Response(
             JSON.stringify({
-
               success: true,
               status: "already_verified",
               ip: ip,
               multiple: false,
               already_verified: true
-
             }),
-
             {
               headers: {
                 ...corsHeaders,
-                "Content-Type": "application/json"
+                "Content-Type":
+                  "application/json"
               }
             }
           );
 
         }
-
 
         // ===============================================
         // 🔄 VERIFICATION NOT COMPLETED
@@ -229,32 +269,28 @@ export default {
             ip
           );
 
-
         return new Response(
           JSON.stringify({
-
             success: true,
             status: "pending",
             ip: ip,
             multiple: false,
             already_verified: false,
             token: pendingToken
-
           }),
-
           {
             headers: {
               ...corsHeaders,
-              "Content-Type": "application/json"
+              "Content-Type":
+                "application/json"
             }
           }
         );
 
       }
 
-
       // =================================================
-      // 🌐 CHECK IP DATABASE
+      // 🌐 NEW USER — CHECK IP DATABASE
       // =================================================
 
       const ipRecord =
@@ -262,61 +298,53 @@ export default {
           "ip:" + ip
         );
 
-
       if (ipRecord) {
 
         const savedIP =
           JSON.parse(ipRecord);
 
+        // ===============================================
+        // 🚫 IP BELONGS TO ANOTHER USER
+        // ===============================================
 
         if (
           String(savedIP.user_id) !==
           String(userId)
         ) {
 
-
-          // =============================================
-          // 🚫 PERMANENT BAN NEW USER
-          // =============================================
+          // ---------------------------------------------
+          // 💾 SAVE PERMANENT BAN
+          // ---------------------------------------------
 
           await env.IP_DATABASE.put(
-
             "banned:" + userId,
-
             JSON.stringify({
-
               user_id: userId,
               detected_ip: ip,
-              original_user_id: savedIP.user_id,
+              original_user_id:
+                savedIP.user_id,
               banned_at:
                 new Date().toISOString(),
-
               reason:
                 "Multiple account detected"
-
             })
-
           );
-
 
           return new Response(
             JSON.stringify({
-
               success: true,
               status: "banned",
               ip: ip,
               multiple: true,
               banned: true,
               permanent: true
-
             }),
-
             {
               status: 403,
-
               headers: {
                 ...corsHeaders,
-                "Content-Type": "application/json"
+                "Content-Type":
+                  "application/json"
               }
             }
           );
@@ -325,49 +353,33 @@ export default {
 
       }
 
-
       // =================================================
       // 💾 SAVE NEW USER
       // =================================================
 
       await env.IP_DATABASE.put(
-
         "user:" + userId,
-
         JSON.stringify({
-
           user_id: userId,
           ip: ip,
-
           first_seen:
             new Date().toISOString(),
-
           verified: false
-
         })
-
       );
-
 
       // =================================================
       // 💾 SAVE IP
       // =================================================
 
       await env.IP_DATABASE.put(
-
         "ip:" + ip,
-
         JSON.stringify({
-
           user_id: userId,
-
           first_seen:
             new Date().toISOString()
-
         })
-
       );
-
 
       // =================================================
       // 🎟️ CREATE VERIFICATION TOKEN
@@ -379,35 +391,29 @@ export default {
           ip
         );
 
-
       // =================================================
       // ✅ NEW VERIFICATION
       // =================================================
 
       return new Response(
-
         JSON.stringify({
-
           success: true,
           status: "new",
           ip: ip,
           multiple: false,
           already_verified: false,
           token: token
-
         }),
-
         {
           headers: {
             ...corsHeaders,
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           }
         }
-
       );
 
     }
-
 
     // =====================================================
     // 🚫 SAFE BAN CHECK
@@ -418,91 +424,68 @@ export default {
       const userId =
         url.searchParams.get("user_id");
 
-
       if (!userId) {
 
         return new Response(
-
           JSON.stringify({
-
             success: false,
             error:
               "Telegram user ID missing"
-
           }),
-
           {
             status: 400,
-
             headers: {
               ...corsHeaders,
               "Content-Type":
                 "application/json"
             }
           }
-
         );
 
       }
-
 
       const bannedUser =
         await env.IP_DATABASE.get(
           "banned:" + userId
         );
 
-
       if (bannedUser) {
 
         return new Response(
-
           JSON.stringify({
-
             success: true,
             banned: true,
             permanent: true
-
           }),
-
           {
             status: 200,
-
             headers: {
               ...corsHeaders,
               "Content-Type":
                 "application/json"
             }
           }
-
         );
 
       }
 
-
       return new Response(
-
         JSON.stringify({
-
           success: true,
           banned: false,
           permanent: false
-
         }),
-
         {
           status: 200,
-
           headers: {
             ...corsHeaders,
             "Content-Type":
               "application/json"
           }
         }
-
       );
 
     }
-
 
     // =====================================================
     // 🎟️ VERIFY TOKEN
@@ -513,32 +496,24 @@ export default {
       const token =
         url.searchParams.get("token");
 
-
       if (!token) {
 
         return new Response(
-
           JSON.stringify({
-
             success: false,
             error: "Missing token"
-
           }),
-
           {
             status: 400,
-
             headers: {
               ...corsHeaders,
               "Content-Type":
                 "application/json"
             }
           }
-
         );
 
       }
-
 
       // =================================================
       // 🔎 GET TOKEN DATA
@@ -549,38 +524,29 @@ export default {
           "verify:" + token
         );
 
-
       if (!data) {
 
         return new Response(
-
           JSON.stringify({
-
             success: false,
             verified: false,
             error:
               "Invalid or expired token"
-
           }),
-
           {
             status: 403,
-
             headers: {
               ...corsHeaders,
               "Content-Type":
                 "application/json"
             }
           }
-
         );
 
       }
 
-
       const verificationData =
         JSON.parse(data);
-
 
       const userId =
         verificationData.user_id;
@@ -588,6 +554,37 @@ export default {
       const verifiedIP =
         verificationData.ip;
 
+      // =================================================
+      // 🚫 CHECK BAN BEFORE VERIFY
+      // =================================================
+
+      const bannedUser =
+        await env.IP_DATABASE.get(
+          "banned:" + userId
+        );
+
+      if (bannedUser) {
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            verified: false,
+            banned: true,
+            permanent: true,
+            error:
+              "User is permanently banned"
+          }),
+          {
+            status: 403,
+            headers: {
+              ...corsHeaders,
+              "Content-Type":
+                "application/json"
+            }
+          }
+        );
+
+      }
 
       // =================================================
       // 🔎 GET USER
@@ -598,55 +595,46 @@ export default {
           "user:" + userId
         );
 
-
       if (!userRecord) {
 
         return new Response(
-
           JSON.stringify({
-
             success: false,
             verified: false,
             error:
               "User record not found"
-
           }),
-
           {
             status: 404,
-
             headers: {
               ...corsHeaders,
               "Content-Type":
                 "application/json"
             }
           }
-
         );
 
       }
 
-
       const savedUser =
         JSON.parse(userRecord);
-
 
       // =================================================
       // 🛡️ VERIFY TOKEN IP
       // =================================================
 
-      if (savedUser.ip !== verifiedIP) {
+      if (
+        savedUser.ip !==
+        verifiedIP
+      ) {
 
-        // Update user IP because this token
-        // was created for the user's current IP
-
-        savedUser.ip = verifiedIP;
+        savedUser.ip =
+          verifiedIP;
 
         savedUser.ip_updated_at =
           new Date().toISOString();
 
       }
-
 
       // =================================================
       // 🗑️ DELETE ONE-TIME TOKEN
@@ -656,40 +644,44 @@ export default {
         "verify:" + token
       );
 
-
       // =================================================
       // ✅ MARK USER VERIFIED
       // =================================================
 
       savedUser.verified = true;
+
       savedUser.verified_at =
         new Date().toISOString();
 
-
       await env.IP_DATABASE.put(
-
         "user:" + userId,
-
         JSON.stringify(savedUser)
-
       );
 
+      // =================================================
+      // 💾 UPDATE IP DATABASE
+      // =================================================
+
+      await env.IP_DATABASE.put(
+        "ip:" + verifiedIP,
+        JSON.stringify({
+          user_id: userId,
+          first_seen:
+            new Date().toISOString()
+        })
+      );
 
       // =================================================
       // ✅ VERIFIED
       // =================================================
 
       return new Response(
-
         JSON.stringify({
-
           success: true,
           verified: true,
           user_id: userId,
           ip: verifiedIP
-
         }),
-
         {
           headers: {
             ...corsHeaders,
@@ -697,60 +689,36 @@ export default {
               "application/json"
           }
         }
-
       );
 
     }
-
 
     // =====================================================
     // 🌐 DEFAULT RESPONSE
     // =====================================================
 
     return new Response(
-
       `<!DOCTYPE html>
-
       <html>
-
       <head>
-
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0"
         >
-
-        <title>
-          IP Verification API
-        </title>
-
+        <title>IP Verification API</title>
       </head>
-
       <body>
-
-        <h1>
-          IP Verification API
-        </h1>
-
-        <p>
-          API is running successfully.
-        </p>
-
-        <p>
-          This API made by @CallJunaeid
-        </p>
-
+        <h1>IP Verification API</h1>
+        <p>API is running successfully.</p>
+        <p>This API made by @CallJunaeid</p>
       </body>
-
       </html>`,
-
       {
         headers: {
           "Content-Type":
             "text/html; charset=UTF-8"
         }
       }
-
     );
 
   }
