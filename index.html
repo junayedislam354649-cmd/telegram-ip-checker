@@ -1031,45 +1031,35 @@
 
     function returnToBot() {
 
-
-        const errorMessage =
-            document.getElementById(
-                "errorMessage"
-            );
-
+        const errorMessage = document.getElementById("errorMessage");
 
         // ==================================
-        // NOT VERIFIED
+        // ❌ NOT VERIFIED
         // ==================================
 
-        if (
-            !verificationPassed
-        ) {
+        if (!verificationPassed) {
 
             errorMessage.textContent =
                 "🚫 Verification failed. You cannot return to the bot.";
 
-            errorMessage.style.display =
-                "block";
+            errorMessage.style.display = "block";
 
             return;
-
         }
 
-
-
         // ==================================
-        // ALREADY VERIFIED
+        // ✅ ALREADY VERIFIED
         // ==================================
 
-        if (
-            alreadyVerified === true
-        ) {
+        if (alreadyVerified === true) {
 
             console.log(
-                "Already verified. Opening bot..."
+                "Already verified. Returning to bot..."
             );
 
+            const botLink =
+                BOT_URL +
+                "?start=verification_complete_already";
 
             if (
                 window.Telegram &&
@@ -1077,60 +1067,42 @@
             ) {
 
                 tg.openTelegramLink(
-                    BOT_URL
+                    botLink
                 );
-
 
                 setTimeout(
-
                     function () {
-
                         tg.close();
-
                     },
-
-                    300
-
+                    500
                 );
 
-            }
-
-            else {
+            } else {
 
                 window.location.href =
-                    BOT_URL;
+                    botLink;
 
             }
 
-
             return;
-
         }
 
-
-
         // ==================================
-        // TOKEN REQUIRED
+        // ❌ TOKEN REQUIRED
         // ==================================
 
-        if (
-            !verificationToken
-        ) {
+        if (!verificationToken) {
 
             errorMessage.textContent =
                 "⚠️ Verification token missing. Please restart verification.";
 
-            errorMessage.style.display =
-                "block";
+            errorMessage.style.display = "block";
 
             return;
-
         }
 
-
-
         // ==================================
-        // BOT LINK WITH TOKEN
+        // 🔐 BOT LINK WITH TOKEN
         // ==================================
 
         const botLink =
@@ -1140,15 +1112,12 @@
                 verificationToken
             );
 
-
         console.log(
-            "Opening bot with verification token."
+            "Opening bot with verification token..."
         );
 
-
-
         // ==================================
-        // OPEN BOT
+        // 🚀 OPEN BOT
         // ==================================
 
         if (
@@ -1160,30 +1129,20 @@
                 botLink
             );
 
-
             setTimeout(
-
                 function () {
-
                     tg.close();
-
                 },
-
-                300
-
+                500
             );
 
-        }
-
-        else {
+        } else {
 
             window.location.href =
                 botLink;
 
         }
-
     }
-
 
 
     // ==================================
