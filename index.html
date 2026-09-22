@@ -730,7 +730,8 @@
 
 
             alert(
-                JSON.stringify(data)
+                "TOKEN:\n[" + data.token + "]\n\nLENGTH: " +
+                (data.token ? data.token.length : 0)
             );
 
 
