@@ -65,6 +65,12 @@ export default {
 
     if (url.pathname === "/api/check") {
 
+      console.log(
+      "🔥 API CHECK REQUEST:",
+      request.method,
+      url.toString()
+    );
+
       const userId =
         url.searchParams.get("user_id");
 
