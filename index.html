@@ -638,26 +638,11 @@
 
             try {
 
-                response =
-                    await fetch(
-
-                        apiUrl,
-
-                        {
-
-                            method: "GET",
-
-                            mode: "cors",
-
-                            cache: "no-store",
-
-                            signal:
-                                controller.signal
-
-                        }
-
-                    );
-
+                response = await fetch(apiUrl, {
+                    method: "GET",
+                    cache: "no-store",
+                    signal: controller.signal
+                });
             }
 
             finally {
