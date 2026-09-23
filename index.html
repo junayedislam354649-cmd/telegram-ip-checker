@@ -602,11 +602,7 @@
             const apiUrl =
                 API_URL +
                 "?user_id=" +
-                encodeURIComponent(
-                    tgUser
-                ) +
-                "&t=" +
-                Date.now();
+                encodeURIComponent(String(tgUser));
 
 
 
